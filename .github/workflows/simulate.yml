@@ -1,9 +1,11 @@
-name: Test Simulation Action
+name: Run Sailing Simulation
 
 on:
-  workflow_dispatch: # Allows you to trigger it manually from GitHub
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Keeps the manual run button active too
 
-# 👇 ADD THIS PERMISSIONS BLOCK
 permissions:
   contents: write
 
@@ -27,4 +29,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add sim_state.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Test action auto-update [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update simulation state [skip ci]" && git push)

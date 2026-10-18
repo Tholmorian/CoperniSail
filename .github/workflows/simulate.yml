@@ -3,6 +3,10 @@ name: Test Simulation Action
 on:
   workflow_dispatch: # Allows you to trigger it manually from GitHub
 
+# 👇 ADD THIS PERMISSIONS BLOCK
+permissions:
+  contents: write
+
 jobs:
   test-update:
     runs-on: ubuntu-latest

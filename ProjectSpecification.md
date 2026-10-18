@@ -16,6 +16,11 @@ The updating process consists in these steps: Load the boat data in the database
 Only if the process is applied to my boat: Load the heading set by the user on the user interface. Update my boat heading in the database. Update the user map.
 When a colision is detected, the boat is set at the default start position.
 When the boat arrives at the arrival, the travel time is saved in the hall of fame (in the database) and the boat is set at the default start position.
+# Database description
+***
+
 # Functions descriptions
 ## CoperniSail
-The CoperniSail function is the entry point of the app called by Streamlit when a user connect.
+The CoperniSail script file is the entry point of the app called by Streamlit when a user connect.
+***
+# 

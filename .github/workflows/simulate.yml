@@ -1,0 +1,26 @@
+name: Test Simulation Action
+
+on:
+  workflow_dispatch: # Allows you to trigger it manually from GitHub
+
+jobs:
+  test-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run test script
+        run: python simulator_backend.py
+
+      - name: Commit and push updated state file back to repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add sim_state.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Test action auto-update [skip ci]" && git push)

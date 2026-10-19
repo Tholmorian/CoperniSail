@@ -6,8 +6,10 @@ The CoperniSail app is a game that let you sail a sailing dinghy from France to 
 The database is hosted in my google cloud account, in a Firestore database. It contains boat positions and heading.
 The code is ran on Streamlit could platform at the address https://copernisail.streamlit.app/ .
 # Connections
-The current and wind data are retreived from copernicusmarine API with my username and password.
+The current data are retreived from copernicusmarine API with my username and password.
+The wind data are retrieved from api.open-meteo.com without account.
 The AIS boat positions are retreived from ais.openwaters.io website without account.
+
 # General app process
 When the app is loaded, the boat key field is empty. If a valid key is typed, the boat data are loaded in the database. If the key does not exist in the database it is created. If the key is not valid, the user is informed. To get a valid key the user shall ask it to the Webmaster. A key validity is tested by a function described below.
 When a boat is loaded, the app updates every 60s.

@@ -15,8 +15,8 @@ st.set_page_config(layout="wide")
 @st.cache_resource
 def get_firestore_client():
   if not firebase_admin._apps:
-    # Supports secrets stored either under a [firebase] section or at the root of st.secrets
-    secret_source = st.secrets.get("firebase", st.secrets)
+    # Supports secrets stored either under a [Firestore] section or at the root of st.secrets
+    secret_source = st.secrets.get("Firestore", st.secrets)
     cred_dict = dict(secret_source)
 
     # Ensure private key newline formatting is correct if loaded from string escape

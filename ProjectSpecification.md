@@ -45,11 +45,28 @@ The database login data are stored in the secrets file of the Streamlit cloud.
 The CoperniSail script file is the entry point of the app called by Streamlit when a user connect. It loops every 60s. In each loop, it loops through all boats in the database, starting by the boat which has the boat key indicated in the boat key field. It follows by the boat that has the oldest update time and repeat until every update time is more recent than 5min. The loop content is described hereunder:
 - If the boat do not exist and the key is valid as tested by ValidKey(key), create a new boat with function MakeBoat(key).
 - Update in database last_update_time for the boat to prevent update by another user
-- If meteo is older than 10min, update meteo data with function UpdateWind(latitude,longitude) and function UpdateCurrent(latitude,longitude) . Keep values to update all boat data in database at once.
+- If meteo is older than 10min, update meteo data with function GetWind(latitude,longitude) and function GetCurrent(latitude,longitude) . Keep values to update all boat data in database at once.
 - Load AIS data with function GetAisData(latitude,longitude).
-- 
-- Simulate the boats displacement from last_update_time to now to detect colisions by looping by 10s step with function SimulateMovement(AidData,BoatData). Keep new boat position.
+- If the simulated boat is my boat, get heading and follow_wind from user interface.
+- Simulate the boats displacement from last_update_time to now to detect colisions by looping by 10s step with function SimulateMovement(AisData,BoatData). If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
 - If a colision has been detected, reset boat position.
-- 
-***
-# 
+- Save boat data in the database.
+- If the simulated boat is my boat, update map.
+## ValidKey
+The function ValidKey(boolean key) returns true if the key is valid. It uses the secret [KeyTester] secret_key. It compares the last 8 characters to the encoding of the first 8 characters.
+## GetMyBoat
+the function GetMyBoat(key) Query the data of the boat with key in the Firestore database. Use the secrets in [Firestore] to login.
+## GetLastBoat
+The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat data.
+## Makeboat
+The function Makeboat(key) creates a boat in the database with default values.
+## GetWind
+The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position.
+## GetCurrent
+The function GetCurrent(latitude,longitude) returns the a dictionnary with northward current and eastward current at the boat position.
+Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API.
+
+
+
+
+

@@ -32,6 +32,11 @@ The database data contains all the following fields for each entry:
 - speed: speed in knots relative to ground at the time of last update
 - best_time_to_arrival: duration in second of the best race time of the boat
 - start_time: Time when starting race in UTC iso format
+- meteo_update_time: Time when meteo of the boat has last been updated in UTC iso format
+- wind_speed: Wind speed at boat position in m/s
+- wind_direction: Wind direction at boat position in degree
+- current_speed: Current speed at boat position in m/s
+- current_direction: Current direction at boat position in degree
 The database login data are stored in the secrets file of the Streamlit cloud. 
 
 # Functions descriptions
@@ -39,8 +44,8 @@ The database login data are stored in the secrets file of the Streamlit cloud.
 ## CoperniSail
 The CoperniSail script file is the entry point of the app called by Streamlit when a user connect. It loops every 60s. In each loop, it loops through all boats in the database, starting by the boat which has the boat key indicated in the boat key field. It follows by the boat that has the oldest update time and repeat until every update time is more recent than 5min. The loop content is described hereunder:
 - If the boat do not exist and the key is valid as tested by ValidKey(key), create a new boat with function MakeBoat(key).
-- Update in database last_update_time for the boat.
-- 
+- Update in database last_update_time for the boat to prevent update by another user
+- If meteo is older than 10min, update meteo data with function UpdateWind(latitude,longitude) and function UpdateCurrent(latitude,longitude) . Keep values to update all boat data in database at once.
 
 ***
 # 

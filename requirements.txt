@@ -1,8 +1,10 @@
-streamlit>=1.30.0
+streamlit>=1.33.0
+firebase-admin>=6.0.0
+google-cloud-firestore>=2.0.0
+google-auth>=2.0.0
 folium>=0.14.0
 streamlit-folium>=0.15.0
 requests>=2.28.0
 copernicusmarine>=1.0.0
-google-cloud-firestore
-google-auth
-pandas
+numpy>=1.20.0
+pandas>=1.0.0

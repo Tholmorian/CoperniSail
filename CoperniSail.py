@@ -209,6 +209,22 @@ def live_simulation_fragment():
   current_u_knots = current_u_ms * 1.94384
   current_v_knots = current_v_ms * 1.94384
 
+  # --- Calculate Current Speed and Direction for Logging ---
+  current_speed_ms = math.sqrt(current_u_ms**2 + current_v_ms**2)
+  current_speed_knots = current_speed_ms * 1.94384
+  # Direction the current is flowing towards (in degrees clockwise from North)
+  current_dir_to = math.degrees(math.atan2(current_u_ms, current_v_ms)) % 360
+
+  # Print Environment Info to Server Logs
+  print(
+      f"--- [ENVIRONMENT UPDATE] {now.strftime('%H:%M:%S')} UTC ---"
+      f" Position: {latitude:.4f}°N, {longitude:.4f}°E | "
+      f"Wind: {w_speed_ms:.2f} m/s ({wind_speed_knots:.2f} kts) from"
+      f" {wind_dir:.1f}° | "
+      f"Current: {current_speed_ms:.2f} m/s ({current_speed_knots:.2f} kts)"
+      f" towards {current_dir_to:.1f}°"
+  )
+
   sim_heading = st.session_state.get("SIM_HEADING", 270)
   angle_diff = abs(sim_heading - wind_dir) % 360
   if angle_diff > 180:

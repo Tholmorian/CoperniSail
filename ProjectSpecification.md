@@ -37,6 +37,10 @@ The database login data are stored in the secrets file of the Streamlit cloud.
 # Functions descriptions
 
 ## CoperniSail
-The CoperniSail script file is the entry point of the app called by Streamlit when a user connect.
+The CoperniSail script file is the entry point of the app called by Streamlit when a user connect. It loops every 60s. In each loop, it loops through all boats in the database, starting by the boat which has the boat key indicated in the boat key field. It follows by the boat that has the oldest update time and repeat until every update time is more recent than 5min. The loop content is described hereunder:
+- If the boat do not exist and the key is valid as tested by ValidKey(key), create a new boat with function MakeBoat(key).
+- Update in database last_update_time for the boat.
+- 
+
 ***
 # 

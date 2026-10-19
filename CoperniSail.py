@@ -217,7 +217,7 @@ def live_simulation_fragment():
 
   # Print Environment Info to Server Logs
   print(
-      f"--- [ENVIRONMENT UPDATE] {now.strftime('%H:%M:%S')} UTC ---"
+      f"--- [ENVIRONMENT UPDATE] {datetime.now.strftime('%H:%M:%S')} UTC ---"
       f" Position: {latitude:.4f}°N, {longitude:.4f}°E | "
       f"Wind: {w_speed_ms:.2f} m/s ({wind_speed_knots:.2f} kts) from"
       f" {wind_dir:.1f}° | "

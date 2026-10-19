@@ -181,7 +181,7 @@ def live_simulation_fragment():
 
   # Fetch Live Predicted Wind via Open-Meteo API (No API key required)
   w_speed_ms = 5.0
-  wind_dir = 180.0
+  wind_direction_from = 180.0
   try:
     weather_url = (
         f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
@@ -191,7 +191,7 @@ def live_simulation_fragment():
     resp.raise_for_status()
     current_weather = resp.json().get("current", {})
     w_speed_ms = current_weather.get("wind_speed_10m", 5.0)
-    wind_dir = current_weather.get("wind_direction_10m", 180.0)
+    wind_direction_from = current_weather.get("wind_direction_10m", 180.0)
   except Exception:
     st.warning("Could not load cwind")
   wind_speed_knots = w_speed_ms * 1.94384

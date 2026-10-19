@@ -11,24 +11,23 @@ from streamlit_folium import st_folium
 
 st.set_page_config(layout="wide")
 
-# 1. Initialize Firestore Database Client
+# Initialize the Firestore client pointing to your named database
 @st.cache_resource
 def get_firestore_client():
   if not firebase_admin._apps:
-    # Supports secrets stored either under a [Firestore] section or at the root of st.secrets
-    secret_source = st.secrets.get("Firestore", st.secrets)
+    secret_source = st.secrets.get("firebase", st.secrets)
     cred_dict = dict(secret_source)
-
-    # Ensure private key newline formatting is correct if loaded from string escape
     if "private_key" in cred_dict:
       cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
-
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
-  return firestore.client()
-
+  
+  # Pass your database name here!
+  return firestore.client(database_id="copernisail-boat-data")
 
 db = get_firestore_client()
+
+# Point to your collection and document inside that database
 STATE_DOC_REF = db.collection("sim_state").document("current")
 
 # Default simulation state

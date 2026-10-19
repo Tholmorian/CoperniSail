@@ -3,6 +3,7 @@ import json
 import math
 import os
 import copernicusmarine
+import requests
 import folium
 from firebase_admin import credentials, firestore
 import firebase_admin

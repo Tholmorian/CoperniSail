@@ -15,7 +15,7 @@ st.set_page_config(layout="wide")
 @st.cache_resource
 def get_firestore_client():
   if not firebase_admin._apps:
-    secret_source = st.secrets.get("firebase", st.secrets)
+    secret_source = st.secrets.get("Firestore", st.secrets)
     cred_dict = dict(secret_source)
     if "private_key" in cred_dict:
       cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")

@@ -3,6 +3,7 @@ import json
 import math
 import os
 import copernicusmarine
+import folium
 from firebase_admin import credentials, firestore
 import firebase_admin
 import numpy as np

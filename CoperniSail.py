@@ -220,7 +220,7 @@ def live_simulation_fragment():
       f"Wind: {w_speed_ms:.2f} m/s ({wind_speed_knots:.2f} kts) from"
       f" {wind_dir:.1f}° | "
       f"Current: {current_speed_ms:.2f} m/s ({current_speed_knots:.2f} kts)"
-      f" towards {current_dir_to:.1f}°"
+      f" towards {current_dir_to:.1f}°",flush=True
   )
 
   sim_heading = st.session_state.get("SIM_HEADING", 270)

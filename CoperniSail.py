@@ -177,6 +177,7 @@ def live_simulation_fragment():
     northward_velocity = point_data_curr["vo"].values
   except Exception:
     eastward_velocity, northward_velocity = np.array([0.0]), np.array([0.0])
+    st.warning("Could not load current")
 
   # Fetch Wind Data
   query_time = datetime.now(timezone.utc)
@@ -201,6 +202,7 @@ def live_simulation_fragment():
     wind_direction_from = (270 - np.degrees(np.arctan2(v, u))) % 360
   except Exception:
     wind_speed, wind_direction_from = np.array([5.0]), np.array([180.0])
+    st.warning("Could not load wind")
 
   # Sailing Physics Update
   wind_dir = (
@@ -298,7 +300,7 @@ def live_simulation_fragment():
     resp.raise_for_status()
     geo_data = resp.json()
   except Exception:
-    pass
+    st.warning("Could not load AIS data")
 
   # Build Folium Map
   m = folium.Map(

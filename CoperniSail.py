@@ -179,30 +179,22 @@ def live_simulation_fragment():
     eastward_velocity, northward_velocity = np.array([0.0]), np.array([0.0])
     st.warning("Could not load current")
 
-  # Fetch Wind Data
-  query_time = datetime.now(timezone.utc)
-  wind_time_str = query_time.strftime("%Y-%m-%d %H:%M:%S")
+  # Fetch Live Predicted Wind via Open-Meteo API (No API key required)
+  w_speed_ms = 5.0
+  wind_dir = 180.0
   try:
-    ds_wind = copernicusmarine.open_dataset(
-        dataset_id="cmems_obs-wind_glo_phy_nrt_l4_0.125deg_PT1H",
-        minimum_latitude=latitude,
-        maximum_latitude=latitude,
-        minimum_longitude=longitude,
-        maximum_longitude=longitude,
-        start_datetime=wind_time_str,
-        end_datetime=wind_time_str,
-        variables=["eastward_wind", "northward_wind"],
+    weather_url = (
+        f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
+        "&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms"
     )
-    point_data_wind = ds_wind.sel(
-        latitude=latitude, longitude=longitude, method="nearest"
-    )
-    u = point_data_wind["eastward_wind"].values
-    v = point_data_wind["northward_wind"].values
-    wind_speed = np.sqrt(u**2 + v**2)
-    wind_direction_from = (270 - np.degrees(np.arctan2(v, u))) % 360
+    resp = requests.get(weather_url, timeout=5)
+    resp.raise_for_status()
+    current_weather = resp.json().get("current", {})
+    w_speed_ms = current_weather.get("wind_speed_10m", 5.0)
+    wind_dir = current_weather.get("wind_direction_10m", 180.0)
   except Exception:
-    wind_speed, wind_direction_from = np.array([5.0]), np.array([180.0])
-    st.warning("Could not load wind")
+    st.warning("Could not load cwind")
+  wind_speed_knots = w_speed_ms * 1.94384
 
   # Sailing Physics Update
   wind_dir = (

@@ -17,18 +17,19 @@ Only if the process is applied to my boat: Load the heading set by the user on t
 When a colision is detected, the boat is set at the default start position.
 When the boat arrives at the arrival, the travel time is saved in the hall of fame (in the database) and the boat is set at the default start position.
 # Database description
-The database data contains boat key, field name and value. Field name can be  
+The database data contains all the following fields for each entry:
+- boat_key: Secret ID of the boat, known by the webmaster and the owner.
 - boat_name: Name of the boat
 - skipper_name: Name of the skipper
 - last_update_time: Time of last update of boat data in UTC iso format
 - latitude: latitude of the boat in decimal degree at the last update time
-- longitude:
-- heading: heading of the boat relative to true north, relative to water, not heading over ground, at the time of last update.
-- wind_angle: heading relative to true wind angle, at the time of last update.
-- follow_wind: true if the boat navigates at constant wind angle, false if it navigates at constant heading.
-- speed: speed in knots relative to ground at the time of last update.
-- best_time_to_arrival; duration in second of the best race time of the boat.
-- 
+- longitude: longitude of the boat in decimal degree at the last update time
+- heading: heading of the boat relative to true north, relative to water, not heading over ground, at the time of last update
+- wind_angle: heading relative to true wind angle, at the time of last update
+- follow_wind: true if the boat navigates at constant wind angle, false if it navigates at constant heading
+- speed: speed in knots relative to ground at the time of last update
+- best_time_to_arrival: duration in second of the best race time of the boat
+- start_time: Time when starting race in UTC iso format
 The database login data are stored in the secrets file of the Streamlit cloud. 
 
 # Functions descriptions

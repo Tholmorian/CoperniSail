@@ -47,8 +47,8 @@ The CoperniSail script file is the entry point of the app called by Streamlit wh
 - Update in database last_update_time for the boat to prevent update by another user
 - If meteo is older than 10min, update meteo data with function GetWind and function GetCurrent. Keep values to update all boat data in database at once.
 - Load AIS data with function GetAisData.
-- If the simulated boat is my boat, get heading and follow_wind from user interface.
-- Simulate the boats displacement from last_update_time to now to detect colisions by looping by 10s step with function SimulateMovement(AisData,BoatData). If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
+- If the simulated boat is my boat, get heading and follow_wind from user interface with function GetUserInput.
+- Simulate the boats displacement from last_update_time to now to detect colisions by looping by 10s step with function SimulateMovement. If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
 - If a colision has been detected, reset boat position.
 - If the boat is aground, reset boat position.
 - If the boat is in the start zone, update start_time.
@@ -70,7 +70,14 @@ The function GetCurrent(latitude,longitude) returns the a dictionnary with north
 Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API.
 ## GetAisData
 The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position.
+## GetUserInput
+The function GetUserInput() returns the values of the user editable fields boat_key, boat_name, skipper_name, heading, wind_angle, follow_wind.
+## SimulateMovement
+The funtion SimulateMovement(time, boat_data, AIS_data) simulates the movement of the boat and AIS boat until the time given, with the data in boat_data and AIS_data. The boat is simulated in a very simple way: if the wind angle is smaller than +/-50°C, it stops. If the wind angle is larger, it sails with a speed of half the wind speed. True heading is used if follow_wind is false or wind_angle is used to calculate the heading if  follow_wind is true. The current speed is then added to the boat speed. Is sails in one straight step from last_update_time or last AIS update time to the time requested. The new position and time are updated in boat_data and AIS_data.
 
+# CheckColision 
+
+# CheckAground
 
 
 

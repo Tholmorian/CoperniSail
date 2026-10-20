@@ -259,10 +259,10 @@ def live_simulation_fragment():
     resp = requests.get(weather_url, timeout=5)
     resp.raise_for_status()
     current_weather = resp.json().get("current", {})
-    w_speed_ms = current_weather.get("wind_speed_10m", 5.0)
+    w_speed_ms = current_weather.get("wind_speed_10m", 0.0)
     wind_dir = current_weather.get("wind_direction_10m", 180.0)
   except Exception:
-    st.warning("Could not load cwind")
+    st.warning("Could not load wind")
   wind_speed_knots = w_speed_ms * 1.94384
 
   current_u_ms = (

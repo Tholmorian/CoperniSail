@@ -183,8 +183,34 @@ def estimate_current_position(lat, lon, sog, cog, timestamp_str):
 # 3. Wrap simulation, data fetching, and map rendering in a fragment running every 60 seconds
 @st.fragment(run_every="60s")
 def live_simulation_fragment():
-  latitude = st.session_state.get("SIM_LATITUDE", 51.0)
-  longitude = st.session_state.get("SIM_LONGITUDE", 1.5)
+  # Reload the shared boat state from Firestore at the start of EVERY loop.
+  # This allows another program to update the boat between simulation cycles.
+  try:
+    doc = STATE_DOC_REF.get()
+    if doc.exists:
+      saved_state = doc.to_dict() or {}
+      for key in default_state:
+        if key in saved_state:
+          st.session_state[key] = saved_state[key]
+  except Exception as e:
+    # Keep the last known session state if Firestore is temporarily unavailable.
+    print(f"WARNING: Could not reload boat state from Firestore: {e}", flush=True)
+
+  # Convert the Firestore timestamp to an aware datetime for elapsed-time maths.
+  last_update_value = st.session_state.get("SIM_LAST_UPDATE")
+  if isinstance(last_update_value, str):
+    try:
+      last_update_value = datetime.fromisoformat(last_update_value.replace("Z", "+00:00"))
+    except ValueError:
+      last_update_value = datetime.now(timezone.utc)
+  if not isinstance(last_update_value, datetime):
+    last_update_value = datetime.now(timezone.utc)
+  if last_update_value.tzinfo is None:
+    last_update_value = last_update_value.replace(tzinfo=timezone.utc)
+  st.session_state["SIM_LAST_UPDATE"] = last_update_value
+
+  latitude = float(st.session_state.get("SIM_LATITUDE", 51.0))
+  longitude = float(st.session_state.get("SIM_LONGITUDE", 1.5))
   now = datetime.now(timezone.utc)
 
   # Guard against a saved/manual position that is already on land.
@@ -315,21 +341,6 @@ def live_simulation_fragment():
 
   st.session_state["SIM_LAST_UPDATE"] = now
 
-  # Persist State to Firestore
-  state_to_save = {
-      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 51.0)),
-      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.5)),
-      "SIM_HEADING": int(st.session_state.get("SIM_HEADING", 270)),
-      "SIM_SPEED": float(st.session_state.get("SIM_SPEED", 0.0)),
-      "SIM_LENGTH": float(st.session_state.get("SIM_LENGTH", 25.0)),
-      "SIM_BEAM": float(st.session_state.get("SIM_BEAM", 6.0)),
-      "SIM_LAST_UPDATE": now.isoformat(),
-  }
-  try:
-    STATE_DOC_REF.set(state_to_save)
-  except Exception as e:
-    st.error(f"Failed to save state to Firestore: {e}")
-
   # Fetch AIS Vessels
   radius_nm = 10
   lat_offset = radius_nm / 60.0
@@ -432,6 +443,22 @@ def live_simulation_fragment():
 
   # Pass returned_objects=[] to prevent infinite loop re-renders
   st_folium(m, width=1200, height=650, key="live_map", returned_objects=[])
+
+  # Save the final state at the END of this simulation loop.
+  state_to_save = {
+      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 51.0)),
+      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.5)),
+      "SIM_HEADING": int(st.session_state.get("SIM_HEADING", 270)),
+      "SIM_SPEED": float(st.session_state.get("SIM_SPEED", 0.0)),
+      "SIM_LENGTH": float(st.session_state.get("SIM_LENGTH", 25.0)),
+      "SIM_BEAM": float(st.session_state.get("SIM_BEAM", 6.0)),
+      "SIM_LAST_UPDATE": st.session_state["SIM_LAST_UPDATE"].isoformat(),
+  }
+  try:
+    STATE_DOC_REF.set(state_to_save)
+  except Exception as e:
+    st.error(f"Failed to save state to Firestore: {e}")
+    print(f"ERROR: Failed to save boat state to Firestore: {e}", flush=True)
 
 
 # Execute the live updating fragment

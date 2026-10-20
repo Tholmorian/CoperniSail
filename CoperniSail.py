@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import json
 import math
+import html
 import os
 import copernicusmarine
 import requests
@@ -427,6 +428,14 @@ def live_simulation_fragment():
       st.session_state.get("SIM_BEAM", 6.0),
       st.session_state.get("SIM_HEADING", 270),
   )
+  my_length = float(st.session_state.get("SIM_LENGTH", 25.0) or 25.0)
+  my_beam = float(st.session_state.get("SIM_BEAM", 6.0) or 6.0)
+  my_boat_tooltip = folium.Tooltip(
+      f"<b>My Simulated Boat</b><br>"
+      f"Length: {my_length:.1f} m<br>Beam: {my_beam:.1f} m",
+      sticky=True,
+      parse_html=True,
+  )
   folium.Polygon(
       locations=my_triangle,
       color="#8e44ad",
@@ -434,7 +443,7 @@ def live_simulation_fragment():
       fill=True,
       fill_color="#9b59b6",
       fill_opacity=0.9,
-      tooltip="My Simulated Boat",
+      tooltip=my_boat_tooltip,
   ).add_to(m)
 
   # Plot AIS Vessels
@@ -451,12 +460,39 @@ def live_simulation_fragment():
           props.get("cog", 0),
           props.get("seen"),
       )
+      vessel_length = props.get("length")
+      vessel_width = props.get("width")
+      vessel_name = (
+          props.get("name")
+          or props.get("vessel_name")
+          or props.get("shipname")
+          or props.get("ship_name")
+          or props.get("shipName")
+          or props.get("callsign")
+          or "Unknown vessel"
+      )
+      length_text = (
+          f"{float(vessel_length):.1f} m"
+          if vessel_length not in (None, "", 0, "0")
+          else "not available"
+      )
+      width_text = (
+          f"{float(vessel_width):.1f} m"
+          if vessel_width not in (None, "", 0, "0")
+          else "not available"
+      )
       triangle_coords = create_boat_triangle(
           est_lat,
           est_lon,
-          props.get("length", 20),
-          props.get("width", None),
+          vessel_length or 20,
+          vessel_width,
           props.get("cog", 0),
+      )
+      vessel_tooltip = folium.Tooltip(
+          f"<b>{html.escape(str(vessel_name))}</b><br>"
+          f"Length: {length_text}<br>Beam/width: {width_text}",
+          sticky=True,
+          parse_html=True,
       )
       folium.Polygon(
           locations=triangle_coords,
@@ -465,13 +501,20 @@ def live_simulation_fragment():
           fill=True,
           fill_color="#f1c40f",
           fill_opacity=0.8,
+          tooltip=vessel_tooltip,
       ).add_to(m)
 
+  boat_lat = float(st.session_state["SIM_LATITUDE"])
+  boat_lon = float(st.session_state["SIM_LONGITUDE"])
+  lat_hemisphere = "N" if boat_lat >= 0 else "S"
+  lon_hemisphere = "E" if boat_lon >= 0 else "W"
   st.caption(
       f"Last auto-refresh: {now.strftime('%H:%M:%S')} UTC | Position:"
-      f" {st.session_state['SIM_LATITUDE']:.5f}°N,"
-      f" {st.session_state['SIM_LONGITUDE']:.5f}°E"
+      f" {abs(boat_lat):.5f}°{lat_hemisphere},"
+      f" {abs(boat_lon):.5f}°{lon_hemisphere}"
   )
+  windy_url = f"https://www.windy.com/?wind,{boat_lat:.5f},{boat_lon:.5f},8"
+  st.markdown(f"[Open this position in Windy.com](<{windy_url}>)")
 
   # Pass returned_objects=[] to prevent infinite loop re-renders
   st_folium(m, width=1200, height=650, key="live_map", returned_objects=[])

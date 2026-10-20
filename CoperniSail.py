@@ -45,6 +45,19 @@ def is_on_land(latitude, longitude):
   return get_landmask().contains(float(longitude), float(latitude))
 
 
+def save_heading_change():
+  """Persist an edited heading immediately so the next loop uses it."""
+  try:
+    heading = int(float(st.session_state["heading_widget"])) % 360
+    st.session_state["SIM_HEADING"] = heading
+    st.session_state["heading_widget"] = heading
+    STATE_DOC_REF.update({"SIM_HEADING": heading})
+    print(f"Boat heading manually changed to {heading}°.", flush=True)
+  except Exception as e:
+    st.error(f"Could not save heading to Firestore: {e}")
+    print(f"ERROR: Could not save heading to Firestore: {e}", flush=True)
+
+
 def reset_simulated_boat(reason, now=None):
   """Reset the simulated boat to its default position and log the reason."""
   if now is None:
@@ -259,11 +272,30 @@ def live_simulation_fragment():
     resp = requests.get(weather_url, timeout=5)
     resp.raise_for_status()
     current_weather = resp.json().get("current", {})
-    w_speed_ms = current_weather.get("wind_speed_10m", 0.0)
+    w_speed_ms = current_weather.get("wind_speed_10m", 5.0)
     wind_dir = current_weather.get("wind_direction_10m", 180.0)
   except Exception:
-    st.warning("Could not load wind")
+    st.warning("Could not load cwind")
   wind_speed_knots = w_speed_ms * 1.94384
+
+  # Top information band: live wind conditions and an editable boat heading.
+  wind_col, direction_col, heading_col = st.columns([1, 1, 1.4])
+  with wind_col:
+    st.metric("Wind speed", f"{float(w_speed_ms):.1f} m/s", f"{wind_speed_knots:.1f} knots")
+  with direction_col:
+    st.metric("Wind direction", f"{float(wind_dir):.0f}°", "meteorological: direction FROM")
+  with heading_col:
+    # Sync the widget from the latest shared DB state before rendering it.
+    st.session_state["heading_widget"] = int(st.session_state.get("SIM_HEADING", 270)) % 360
+    st.number_input(
+        "Boat heading (°; 0=N, 90=E, 180=S, 270=W)",
+        min_value=0,
+        max_value=359,
+        step=1,
+        key="heading_widget",
+        on_change=save_heading_change,
+        help="Changes are saved immediately to Firestore and used by the simulation.",
+    )
 
   current_u_ms = (
       eastward_velocity[0]

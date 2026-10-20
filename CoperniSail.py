@@ -279,17 +279,19 @@ def live_simulation_fragment():
     st.warning("Could not load cwind")
   wind_speed_knots = w_speed_ms * 1.94384
 
-  # Top information band: live wind conditions and an editable boat heading.
-  wind_col, direction_col, heading_col = st.columns([1, 1, 1.4])
+  # Compact top information band: keep the key controls and links on one line.
+  wind_col, direction_col, heading_col, position_col, windy_col = st.columns(
+      [0.9, 1.0, 1.5, 1.7, 0.9], gap="small"
+  )
   with wind_col:
-    st.metric("Wind speed", f"{float(w_speed_ms):.1f} m/s", f"{wind_speed_knots:.1f} knots")
+    st.metric("Wind", f"{float(w_speed_ms):.1f} m/s", f"{wind_speed_knots:.1f} kn")
   with direction_col:
-    st.metric("Wind direction", f"{float(wind_dir):.0f}°", "meteorological: direction FROM")
+    st.metric("Wind from", f"{float(wind_dir):.0f}°")
   with heading_col:
     # Sync the widget from the latest shared DB state before rendering it.
     st.session_state["heading_widget"] = int(st.session_state.get("SIM_HEADING", 270)) % 360
     st.number_input(
-        "Boat heading (°; 0=N, 90=E, 180=S, 270=W)",
+        "Heading (°; 0=N, 90=E)",
         min_value=0,
         max_value=359,
         step=1,
@@ -297,6 +299,20 @@ def live_simulation_fragment():
         on_change=save_heading_change,
         help="Changes are saved immediately to Firestore and used by the simulation.",
     )
+  with position_col:
+    top_lat = float(st.session_state.get("SIM_LATITUDE", latitude))
+    top_lon = float(st.session_state.get("SIM_LONGITUDE", longitude))
+    lat_hemi = "N" if top_lat >= 0 else "S"
+    lon_hemi = "E" if top_lon >= 0 else "W"
+    st.markdown("**Position / refresh**")
+    st.caption(
+        f"{abs(top_lat):.4f}°{lat_hemi}, {abs(top_lon):.4f}°{lon_hemi} · "
+        f"{now.strftime('%H:%M:%S')} UTC"
+    )
+  with windy_col:
+    top_windy_url = f"https://www.windy.com/?wind,{top_lat:.5f},{top_lon:.5f},11"
+    st.markdown("**Weather map**")
+    st.markdown(f"[Open Windy ↗]({top_windy_url})")
 
   current_u_ms = (
       eastward_velocity[0]
@@ -461,7 +477,6 @@ def live_simulation_fragment():
           props.get("seen"),
       )
       vessel_length = props.get("length")
-      vessel_width = props.get("width")
       vessel_name = (
           props.get("name")
           or props.get("vessel_name")
@@ -476,21 +491,18 @@ def live_simulation_fragment():
           if vessel_length not in (None, "", 0, "0")
           else "not available"
       )
-      width_text = (
-          f"{float(vessel_width):.1f} m"
-          if vessel_width not in (None, "", 0, "0")
-          else "not available"
-      )
+      # AIS width/beam is often unreliable, so ignore it for both display and shape.
+      # create_boat_triangle will use a proportional default width when passed None.
       triangle_coords = create_boat_triangle(
           est_lat,
           est_lon,
           vessel_length or 20,
-          vessel_width,
+          None,
           props.get("cog", 0),
       )
       vessel_tooltip = folium.Tooltip(
           f"<b>{html.escape(str(vessel_name))}</b><br>"
-          f"Length: {length_text}<br>Beam/width: {width_text}",
+          f"Length: {length_text}",
           sticky=True,
           parse_html=True,
       )
@@ -503,18 +515,6 @@ def live_simulation_fragment():
           fill_opacity=0.8,
           tooltip=vessel_tooltip,
       ).add_to(m)
-
-  boat_lat = float(st.session_state["SIM_LATITUDE"])
-  boat_lon = float(st.session_state["SIM_LONGITUDE"])
-  lat_hemisphere = "N" if boat_lat >= 0 else "S"
-  lon_hemisphere = "E" if boat_lon >= 0 else "W"
-  st.caption(
-      f"Last auto-refresh: {now.strftime('%H:%M:%S')} UTC | Position:"
-      f" {abs(boat_lat):.5f}°{lat_hemisphere},"
-      f" {abs(boat_lon):.5f}°{lon_hemisphere}"
-  )
-  windy_url = f"https://www.windy.com/?wind,{boat_lat:.5f},{boat_lon:.5f},8"
-  st.markdown(f"[Open this position in Windy.com](<{windy_url}>)")
 
   # Pass returned_objects=[] to prevent infinite loop re-renders
   st_folium(m, width=1200, height=650, key="live_map", returned_objects=[])

@@ -77,8 +77,8 @@ def reset_simulated_boat(reason, now=None):
 
 # Default simulation state
 default_state = {
-    "SIM_LATITUDE": 51.0,
-    "SIM_LONGITUDE": 1.5,
+    "SIM_LATITUDE": 50.97,
+    "SIM_LONGITUDE": 1.83,
     "SIM_HEADING": 270,
     "SIM_SPEED": 0.0,
     "SIM_LENGTH": 25.0,
@@ -223,8 +223,8 @@ def live_simulation_fragment():
     last_update_value = last_update_value.replace(tzinfo=timezone.utc)
   st.session_state["SIM_LAST_UPDATE"] = last_update_value
 
-  latitude = float(st.session_state.get("SIM_LATITUDE", 51.0))
-  longitude = float(st.session_state.get("SIM_LONGITUDE", 1.5))
+  latitude = float(st.session_state.get("SIM_LATITUDE", 50.97))
+  longitude = float(st.session_state.get("SIM_LONGITUDE", 1.83))
   now = datetime.now(timezone.utc)
 
   # Guard against a saved/manual position that is already on land.
@@ -521,8 +521,8 @@ def live_simulation_fragment():
 
   # Save the final state at the END of this simulation loop.
   state_to_save = {
-      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 51.0)),
-      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.5)),
+      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 50.97)),
+      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.83)),
       "SIM_HEADING": int(st.session_state.get("SIM_HEADING", 270)),
       "SIM_SPEED": float(st.session_state.get("SIM_SPEED", 0.0)),
       "SIM_LENGTH": float(st.session_state.get("SIM_LENGTH", 25.0)),

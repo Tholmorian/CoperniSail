@@ -86,5 +86,6 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
-
+## DrawTriangle
+The function DrawTriangle(latitude,longitude,length) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length.
 

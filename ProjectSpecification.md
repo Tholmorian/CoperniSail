@@ -81,11 +81,11 @@ The function CheckAground(latitude,longitude) check if the boat is aground using
 ## CheckWaypoint
 The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone and number 100 is the arrival zone. The waypoints are in a list of dictionnary with 'number','latitude','longitude','radius'. the radius of a waypoints are given in nautical miles.
 ## DrawMap
-The function DrawMap(boat_data, AIS_data) uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. 
+The function DrawMap(boat_data, AIS_data) uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. 
 folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
 ## DrawTriangle
-The function DrawTriangle(latitude,longitude,length) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length.
+The function DrawTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length.
 

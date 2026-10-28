@@ -64,12 +64,12 @@ The function GetLastBoat() Query the data of the boat with the oldest last_updat
 ## Makeboat
 The function Makeboat(key) creates a boat in the database with default values.
 ## GetWind
-The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position.
+The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in knots.
 ## GetCurrent
 The function GetCurrent(latitude,longitude) returns the a dictionnary with northward current and eastward current at the boat position.
-Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API.
+Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API. The values are in knots.
 ## GetAisData
-The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position.
+The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position. The data are 'Name':string,'Length':value in m,'Speed':value in knots,'Heading':value in degree,'UpdateTime':'string with time in ISO format. 
 ## GetUserInput
 The function GetUserInput() returns the values of the user editable fields boat_key, boat_name, skipper_name, heading, wind_angle, follow_wind.
 ## SimulateMovement
@@ -79,7 +79,10 @@ The function CheckColision(boat_data,AIS_data) verify the colision of the curren
 ## CheckAground
 The function CheckAground(latitude,longitude) check if the boat is aground using the library roaring_landmask.
 ## CheckWaypoint
-The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone and number 100 is the arrival zone. The waypoints are in a list of dictionnary with 'number','latitude','longitude','radius'. the radius of a waypoints are given in nautical miles.
+The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone and number 100 is the arrival zone. .
+## GetWaypoint
+The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. It contains a list of waypoints with fields 'number','latitude','longitude','radius'. There is at least a number 1 for dearture and a number 100 for arrival.
+It outout a dictionnary with with 'number','latitude','longitude','radius'. Each contain a list of values.
 ## DrawMap
 The function DrawMap(boat_data, AIS_data) uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. 
 folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -87,5 +90,6 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       name="Esri Satellite",
   )
 ## DrawTriangle
-The function DrawTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length.
+The function DrawTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
+
 

@@ -59,8 +59,10 @@ The updating process consists in these steps: Load the boat data in the database
 - If the boat is in the arrival zone, update best_time_to_arrival if applicable.
 - Save boat data in the database.
 - If the simulated boat is my boat, update map.
+## GenerateKey
+The function GenerateKey() returns a random key with only capital letters and numbers. The key generates 8 random characters then encode them with the secret [KeyTester] secret_key. The random and encoded charactes are interlaced.
 ## ValidKey
-The function ValidKey(key) returns true if the key is valid. It uses the secret [KeyTester] secret_key. It compares the last 8 characters to the encoding of the first 8 characters.
+The function ValidKey(key) returns true if the key is valid.
 ## GetMyBoat
 the function GetMyBoat(key) Query the data of the boat with key in the Firestore database. Use the secrets in [Firestore] to login.
 ## GetLastBoat
@@ -93,8 +95,8 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
-Beside the map are drawn a tack selector, a heading editable field, the true heading and speed.
+Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other fields with the true heading and speed and the boat information are also drawn.
 ## DrawTriangle
 The function DrawTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
-
+## 
 

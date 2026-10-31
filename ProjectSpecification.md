@@ -52,7 +52,7 @@ The updating process consists in these steps: Load the boat data in the database
 - If meteo is older than 10min, update meteo data with function GetWind and function GetCurrent. Keep values to update all boat data in database at once.
 - Load AIS data with function GetAisData.
 - If the simulated boat is my boat, get controls from user interface with function GetUserInput.
-- Simulate the boats displacement from last_update_time to now to detect colisions by looping by 10s step with function SimulateMovement. If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
+- Simulate the boats displacement from last_update_time to now by looping by 10s step with function SimulateMovement. At each step, check if aground, test if collision, test if passed a waypoint. If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
 - If a colision has been detected, reset boat position.
 - If the boat is aground, reset boat position.
 - If the boat is in the start zone, update start_time.
@@ -79,7 +79,7 @@ The function GetAisData(latitude,longitude) returns a dictionnay with boat data 
 ## GetUserInput
 The function GetUserInput() returns the values of the user editable fields boat_key, boat_name, skipper_name, heading_target, tack.
 ## SimulateMovement
-The funtion SimulateMovement(time, boat_data, AIS_data,waypoints) simulates the movement of the boat and AIS boat until the time given, with the data in boat_data and AIS_data. The boat is simulated in a very simple way: The boat is on the closest heading from heading_target but with the constrain that it is on the desired tack and wind angle is higher than min_wind_angle and smaller than max_wind_angles. If the tack is stopped. The boat is at anchorage. The boat navigates with a speed of half the wind speed with a maximum of 5 knots. The current speed is then added to the boat speed. Is sails in one straight step from last_update_time or last AIS update time to the time requested. The new position and time are updated in boat_data and AIS_data. The CheckColision, CheckAground, and CheckWaypoint are done at each simulation step.
+The funtion SimulateMovement(time, boat_data, AIS_data) simulates the movement of the boat and AIS boat until the time given, with the data in boat_data and AIS_data. The boat is simulated in a very simple way: The boat is on the closest heading from heading_target but with the constrain that it is on the desired tack and wind angle is higher than min_wind_angle and smaller than max_wind_angles. If the tack is stopped. The boat is at anchorage. The boat navigates with a speed of half the wind speed with a maximum of 5 knots. The current speed is then added to the boat speed. Is sails in one straight step from last_update_time or last AIS update time to the time requested. The new position and time are updated in boat_data and AIS_data. 
 ## CheckColision 
 The function CheckColision(boat_data,AIS_data) verify the colision of the current boat and the closest boat in AIS_data. The triangles of both boats are calculated with function DrawBoatTriangle then it is verified that both triangles have no interference. If there is a colision, return the AIS data of the boat collided, return an empty array otherwise.
 ## CheckAground

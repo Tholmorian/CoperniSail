@@ -38,6 +38,7 @@ The database data contains all the following fields for each entry:
 - current_speed: Current speed at boat position in m/s
 - current_direction: Current direction at boat position in degree
 - information: a string to retain the last important event for the user interface
+- last_waypoint: The number of the last waypoint passed.
 The database login data are stored in the secrets file of the Streamlit cloud. 
 
 # Functions descriptions

@@ -48,16 +48,18 @@ The CoperniSail script file is the entry point of the app called by Streamlit wh
 
 The updating process consists in these steps: Load the boat data in the database. Update the last update time in the database so that other users do not try to update the boat data. If it is my boat, get boat controls in the user interface. Load the current at the boat position. Load the wind at the boat position. Load the surrouning boat AIS data. Simulate the boat movement and the surrounding boats movements to check for collisions. Check if the boat is arrived at the race goal. Update the boat data in the database. If it is my boat, update the user interface.
 
+- Load the waypoints.
 - If the boat do not exist and the key is valid as tested by function ValidKey, create a new boat with function MakeBoat.
 - Update in database last_update_time for the boat to prevent update by another user
 - If meteo is older than 10min, update meteo data with function GetWind and function GetCurrent. Keep values to update all boat data in database at once.
 - Load AIS data with function GetAisData.
 - If the simulated boat is my boat, get controls from user interface with function GetUserInput.
 - Simulate the boats displacement from last_update_time to now by looping by 10s step with function SimulateMovement. At each step, check if aground, test if collision, test if passed a waypoint. If position is older than 15min, do not simulate, update last_update_time only. Keep new boat position.
-- If a colision has been detected, reset boat position.
-- If the boat is aground, reset boat position.
+- If a colision has been detected, returns the boat to start position with tack stopped. Indicate the collision info in the information of the boat.
+- If the boat is aground, returns the boat to start position with tack stopped. Indicate the grounding info in the information of the boat.
 - If the boat is in the start zone, update start_time.
-- If the boat is in the arrival zone, update best_time_to_arrival if applicable.
+- If the boat is in a waypoint zone, update last waypoint.
+- If the boat is in the arrival zone (last waypoint of the list), returns the boat to start position with tack stopped. Indicate the arrival info in the information of the boat. Update best_time_to_arrival if applicable.
 - Save boat data in the database.
 - If the simulated boat is my boat, update map.
 ## GenerateKey
@@ -69,7 +71,7 @@ the function GetMyBoat(key) Query the data of the boat with key in the Firestore
 ## GetLastBoat
 The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat data.
 ## Makeboat
-The function Makeboat(key) creates a boat in the database with default values.
+The function Makeboat(key,waypoints) creates a boat in the database with default values.
 ## GetWind
 The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in knots.
 ## GetCurrent
@@ -86,7 +88,7 @@ The function CheckColision(boat_data,AIS_data) verify the colision of the curren
 ## CheckAground
 The function CheckAground(latitude,longitude) check if the boat is aground using the library roaring_landmask.
 ## CheckWaypoint
-The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone and number 100 is the arrival zone. .
+The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone.
 ## GetWaypoint
 The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. It contains a list of waypoints with fields 'number','latitude','longitude','radius'. There is at least a number 1 for dearture and a number 100 for arrival.
 It outout a dictionnary with with 'number','latitude','longitude','radius'. Each contain a list of values.
@@ -97,7 +99,7 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       name="Esri Satellite",
   )
 Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other fields with the true heading and speed and the boat information are also drawn.
-## DrawTriangle
-The function DrawTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
+## DrawBoatTriangle
+The function DrawBoatTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
 ## 
 

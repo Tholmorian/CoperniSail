@@ -30,7 +30,7 @@ The database data contains all the following fields for each entry:
 - tack: current tack of the boat, either port or starboard or stopped. (default: "stopped")
 - min_wind_angle: the minimum true wind angle of the boat. (default: 50)
 - max_wind_angle: the maximum wind angle of the boat. (default: 180)
-- speed: speed in knots relative to ground at the time of last update (default: 0)
+- speed: speed in m/s relative to ground at the time of last update (default: 0)
 - best_time_to_arrival: duration in second of the best race time of the boat (default: 0)
 - start_time: Time when starting race in UTC iso format (default: creation time)
 - meteo_update_time: Time when meteo of the boat has last been updated in UTC iso format (default: creation time minus 1h)
@@ -78,12 +78,12 @@ The function GetLastBoat() Query the data of the boat with the oldest last_updat
 ## Makeboat
 The function Makeboat(key,waypoints) creates a boat in the database with default values.
 ## GetWind
-The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in knots.
+The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in m/s.
 ## GetCurrent
 The function GetCurrent(latitude,longitude) returns the a dictionnary with northward current and eastward current at the boat position.
-Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API. The values are in knots.
+Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API. The values are in m/s.
 ## GetAisData
-The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position. The data are 'Name':string,'Length':value in m,'Speed':value in knots,'Heading':value in degree,'UpdateTime':'string with time in ISO format. 
+The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position. The data are 'Name':string,'Length':value in m,'Speed':value in m/s,'Heading':value in degree,'UpdateTime':'string with time in ISO format. 
 ## GetUserInput
 The function GetUserInput() returns the values of the user editable fields boat_key, boat_name, skipper_name, heading_target, tack.
 ## SimulateMovement
@@ -103,7 +103,7 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
-Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other fields with the true heading and speed and the boat information are also drawn.
+Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other fields with the true heading and speed (in knots) and the boat information are also drawn.
 ## DrawBoatTriangle
 The function DrawBoatTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
 ## 

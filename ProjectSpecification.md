@@ -103,7 +103,7 @@ folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Wor
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
-Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other fields with the true heading and speed (in knots) and the boat information are also drawn.
+Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other editable fields contains the Boat name and Skipper name. Finally, fields with the true heading and speed (in knots) and the boat information are also drawn.
 ## DrawBoatTriangle
 The function DrawBoatTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
 ## 

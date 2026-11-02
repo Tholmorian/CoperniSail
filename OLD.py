@@ -1,7 +1,7 @@
-
 from datetime import datetime, timezone, timedelta
 import json
 import math
+import html
 import os
 import copernicusmarine
 import requests
@@ -11,6 +11,7 @@ import firebase_admin
 import numpy as np
 import streamlit as st
 from streamlit_folium import st_folium
+from roaring_landmask import RoaringLandmask
 
 st.set_page_config(layout="wide")
 
@@ -33,10 +34,51 @@ db = get_firestore_client()
 # Point to your collection and document inside that database
 STATE_DOC_REF = db.collection("sim_state").document("current")
 
+
+# Load the landmask once and reuse it across Streamlit reruns.
+@st.cache_resource
+def get_landmask():
+  return RoaringLandmask.new()
+
+
+def is_on_land(latitude, longitude):
+  # roaring-landmask expects longitude first, then latitude.
+  return get_landmask().contains(float(longitude), float(latitude))
+
+
+def save_heading_change():
+  """Persist an edited heading immediately so the next loop uses it."""
+  try:
+    heading = int(float(st.session_state["heading_widget"])) % 360
+    st.session_state["SIM_HEADING"] = heading
+    st.session_state["heading_widget"] = heading
+    STATE_DOC_REF.update({"SIM_HEADING": heading})
+    print(f"Boat heading manually changed to {heading}°.", flush=True)
+  except Exception as e:
+    st.error(f"Could not save heading to Firestore: {e}")
+    print(f"ERROR: Could not save heading to Firestore: {e}", flush=True)
+
+
+def reset_simulated_boat(reason, now=None):
+  """Reset the simulated boat to its default position and log the reason."""
+  if now is None:
+    now = datetime.now(timezone.utc)
+
+  st.session_state["SIM_LATITUDE"] = default_state["SIM_LATITUDE"]
+  st.session_state["SIM_LONGITUDE"] = default_state["SIM_LONGITUDE"]
+  st.session_state["SIM_SPEED"] = 0.0
+  st.session_state["SIM_LAST_UPDATE"] = now
+  print(
+      f"WARNING: Simulated boat was detected on land ({reason}). "
+      f"Position reset to {default_state['SIM_LATITUDE']:.5f}, "
+      f"{default_state['SIM_LONGITUDE']:.5f}.",
+      flush=True,
+  )
+
 # Default simulation state
 default_state = {
-    "SIM_LATITUDE": 51.0,
-    "SIM_LONGITUDE": 1.5,
+    "SIM_LATITUDE": 50.97,
+    "SIM_LONGITUDE": 1.83,
     "SIM_HEADING": 270,
     "SIM_SPEED": 0.0,
     "SIM_LENGTH": 25.0,
@@ -155,9 +197,49 @@ def estimate_current_position(lat, lon, sog, cog, timestamp_str):
 # 3. Wrap simulation, data fetching, and map rendering in a fragment running every 60 seconds
 @st.fragment(run_every="60s")
 def live_simulation_fragment():
-  latitude = st.session_state.get("SIM_LATITUDE", 51.0)
-  longitude = st.session_state.get("SIM_LONGITUDE", 1.5)
-  current_time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+  # Reload the shared boat state from Firestore at the start of EVERY loop.
+  # This allows another program to update the boat between simulation cycles.
+  try:
+    doc = STATE_DOC_REF.get()
+    if doc.exists:
+      saved_state = doc.to_dict() or {}
+      for key in default_state:
+        if key in saved_state:
+          st.session_state[key] = saved_state[key]
+  except Exception as e:
+    # Keep the last known session state if Firestore is temporarily unavailable.
+    print(f"WARNING: Could not reload boat state from Firestore: {e}", flush=True)
+
+  # Convert the Firestore timestamp to an aware datetime for elapsed-time maths.
+  last_update_value = st.session_state.get("SIM_LAST_UPDATE")
+  if isinstance(last_update_value, str):
+    try:
+      last_update_value = datetime.fromisoformat(last_update_value.replace("Z", "+00:00"))
+    except ValueError:
+      last_update_value = datetime.now(timezone.utc)
+  if not isinstance(last_update_value, datetime):
+    last_update_value = datetime.now(timezone.utc)
+  if last_update_value.tzinfo is None:
+    last_update_value = last_update_value.replace(tzinfo=timezone.utc)
+  st.session_state["SIM_LAST_UPDATE"] = last_update_value
+
+  latitude = float(st.session_state.get("SIM_LATITUDE", 50.97))
+  longitude = float(st.session_state.get("SIM_LONGITUDE", 1.83))
+  now = datetime.now(timezone.utc)
+
+  # Guard against a saved/manual position that is already on land.
+  try:
+    if is_on_land(latitude, longitude):
+      reset_simulated_boat(
+          f"starting position {latitude:.5f}, {longitude:.5f}", now
+      )
+      latitude = st.session_state["SIM_LATITUDE"]
+      longitude = st.session_state["SIM_LONGITUDE"]
+  except Exception as e:
+    # Do not stop the simulation if the landmask cannot be loaded or queried.
+    print(f"WARNING: Landmask check failed: {e}", flush=True)
+
+  current_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
 
   # Fetch Ocean Currents
   try:
@@ -196,6 +278,41 @@ def live_simulation_fragment():
   except Exception:
     st.warning("Could not load cwind")
   wind_speed_knots = w_speed_ms * 1.94384
+
+  # Compact top information band: keep the key controls and links on one line.
+  wind_col, direction_col, heading_col, position_col, windy_col = st.columns(
+      [0.9, 1.0, 1.5, 1.7, 0.9], gap="small"
+  )
+  with wind_col:
+    st.metric("Wind", f"{float(w_speed_ms):.1f} m/s", f"{wind_speed_knots:.1f} kn")
+  with direction_col:
+    st.metric("Wind from", f"{float(wind_dir):.0f}°")
+  with heading_col:
+    # Sync the widget from the latest shared DB state before rendering it.
+    st.session_state["heading_widget"] = int(st.session_state.get("SIM_HEADING", 270)) % 360
+    st.number_input(
+        "Heading (°; 0=N, 90=E)",
+        min_value=0,
+        max_value=359,
+        step=1,
+        key="heading_widget",
+        on_change=save_heading_change,
+        help="Changes are saved immediately to Firestore and used by the simulation.",
+    )
+  with position_col:
+    top_lat = float(st.session_state.get("SIM_LATITUDE", latitude))
+    top_lon = float(st.session_state.get("SIM_LONGITUDE", longitude))
+    lat_hemi = "N" if top_lat >= 0 else "S"
+    lon_hemi = "E" if top_lon >= 0 else "W"
+    st.markdown("**Position / refresh**")
+    st.caption(
+        f"{abs(top_lat):.4f}°{lat_hemi}, {abs(top_lon):.4f}°{lon_hemi} · "
+        f"{now.strftime('%H:%M:%S')} UTC"
+    )
+  with windy_col:
+    top_windy_url = f"https://www.windy.com/?wind,{top_lat:.5f},{top_lon:.5f},11"
+    st.markdown("**Weather map**")
+    st.markdown(f"[Open Windy ↗]({top_windy_url})")
 
   current_u_ms = (
       eastward_velocity[0]
@@ -259,22 +376,19 @@ def live_simulation_fragment():
     st.session_state["SIM_LATITUDE"] = latitude + delta_lat
     st.session_state["SIM_LONGITUDE"] = longitude + delta_lon
 
-  st.session_state["SIM_LAST_UPDATE"] = now
-
-  # Persist State to Firestore
-  state_to_save = {
-      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 51.0)),
-      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.5)),
-      "SIM_HEADING": int(st.session_state.get("SIM_HEADING", 270)),
-      "SIM_SPEED": float(st.session_state.get("SIM_SPEED", 0.0)),
-      "SIM_LENGTH": float(st.session_state.get("SIM_LENGTH", 25.0)),
-      "SIM_BEAM": float(st.session_state.get("SIM_BEAM", 6.0)),
-      "SIM_LAST_UPDATE": now.isoformat(),
-  }
+  # Check the updated position too, so the boat is reset if this step
+  # moves it onto land.
+  moved_latitude = st.session_state["SIM_LATITUDE"]
+  moved_longitude = st.session_state["SIM_LONGITUDE"]
   try:
-    STATE_DOC_REF.set(state_to_save)
+    if is_on_land(moved_latitude, moved_longitude):
+      reset_simulated_boat(
+          f"new position {moved_latitude:.5f}, {moved_longitude:.5f}", now
+      )
   except Exception as e:
-    st.error(f"Failed to save state to Firestore: {e}")
+    print(f"WARNING: Landmask check failed: {e}", flush=True)
+
+  st.session_state["SIM_LAST_UPDATE"] = now
 
   # Fetch AIS Vessels
   radius_nm = 10
@@ -330,6 +444,14 @@ def live_simulation_fragment():
       st.session_state.get("SIM_BEAM", 6.0),
       st.session_state.get("SIM_HEADING", 270),
   )
+  my_length = float(st.session_state.get("SIM_LENGTH", 25.0) or 25.0)
+  my_beam = float(st.session_state.get("SIM_BEAM", 6.0) or 6.0)
+  my_boat_tooltip = folium.Tooltip(
+      f"<b>My Simulated Boat</b><br>"
+      f"Length: {my_length:.1f} m<br>Beam: {my_beam:.1f} m",
+      sticky=True,
+      parse_html=True,
+  )
   folium.Polygon(
       locations=my_triangle,
       color="#8e44ad",
@@ -337,7 +459,7 @@ def live_simulation_fragment():
       fill=True,
       fill_color="#9b59b6",
       fill_opacity=0.9,
-      tooltip="My Simulated Boat",
+      tooltip=my_boat_tooltip,
   ).add_to(m)
 
   # Plot AIS Vessels
@@ -354,12 +476,35 @@ def live_simulation_fragment():
           props.get("cog", 0),
           props.get("seen"),
       )
+      vessel_length = props.get("length")
+      vessel_name = (
+          props.get("name")
+          or props.get("vessel_name")
+          or props.get("shipname")
+          or props.get("ship_name")
+          or props.get("shipName")
+          or props.get("callsign")
+          or "Unknown vessel"
+      )
+      length_text = (
+          f"{float(vessel_length):.1f} m"
+          if vessel_length not in (None, "", 0, "0")
+          else "not available"
+      )
+      # AIS width/beam is often unreliable, so ignore it for both display and shape.
+      # create_boat_triangle will use a proportional default width when passed None.
       triangle_coords = create_boat_triangle(
           est_lat,
           est_lon,
-          props.get("length", 20),
-          props.get("width", None),
+          vessel_length or 20,
+          None,
           props.get("cog", 0),
+      )
+      vessel_tooltip = folium.Tooltip(
+          f"<b>{html.escape(str(vessel_name))}</b><br>"
+          f"Length: {length_text}",
+          sticky=True,
+          parse_html=True,
       )
       folium.Polygon(
           locations=triangle_coords,
@@ -368,16 +513,27 @@ def live_simulation_fragment():
           fill=True,
           fill_color="#f1c40f",
           fill_opacity=0.8,
+          tooltip=vessel_tooltip,
       ).add_to(m)
-
-  st.caption(
-      f"Last auto-refresh: {now.strftime('%H:%M:%S')} UTC | Position:"
-      f" {st.session_state['SIM_LATITUDE']:.5f}°N,"
-      f" {st.session_state['SIM_LONGITUDE']:.5f}°E"
-  )
 
   # Pass returned_objects=[] to prevent infinite loop re-renders
   st_folium(m, width=1200, height=650, key="live_map", returned_objects=[])
+
+  # Save the final state at the END of this simulation loop.
+  state_to_save = {
+      "SIM_LATITUDE": float(st.session_state.get("SIM_LATITUDE", 50.97)),
+      "SIM_LONGITUDE": float(st.session_state.get("SIM_LONGITUDE", 1.83)),
+      "SIM_HEADING": int(st.session_state.get("SIM_HEADING", 270)),
+      "SIM_SPEED": float(st.session_state.get("SIM_SPEED", 0.0)),
+      "SIM_LENGTH": float(st.session_state.get("SIM_LENGTH", 25.0)),
+      "SIM_BEAM": float(st.session_state.get("SIM_BEAM", 6.0)),
+      "SIM_LAST_UPDATE": st.session_state["SIM_LAST_UPDATE"].isoformat(),
+  }
+  try:
+    STATE_DOC_REF.set(state_to_save)
+  except Exception as e:
+    st.error(f"Failed to save state to Firestore: {e}")
+    print(f"ERROR: Failed to save boat state to Firestore: {e}", flush=True)
 
 
 # Execute the live updating fragment

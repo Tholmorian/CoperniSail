@@ -15,31 +15,35 @@ The waypoints are in a json file waypoint.json
 When the app is loaded, the boat key field is empty. If a valid key is typed, the boat data are loaded in the database. If the key does not exist in the database it is created. If the key is not valid, the user is informed. To get a valid key the user shall ask it to the Webmaster. When a boat is loaded, the app updates every 60s.
 The updating process is done every 60s for the user's boat then its user interface is updated. Then the updating process is also done for the other boats that have not been updated from more than 5min. The wind, current and surrounding boats AIS positions are loaded from internet websites. The boat movement is simulated. The simulation check that there is no collision with another boat or with the ground. The boats are created at the start position. They are returned to the start position if they collide, get aground or arrive. If the boat arrives, its best travel time can be updated. The user interface has a large map showing the boat and the surrounding AIS retreived boats. It has controls for heading and tack, and indications of GPS heading and speed. A link to windy.com prevision is provided and the last important event.
 A button can show the hall of fame of the best 20 times to arrival, and the user position in the hall of fame.
+
 # Database description
 The database data contains all the following fields for each entry:
-- boat_key: Secret ID of the boat, known by the webmaster and the owner.
-- boat_name: Name of the boat
-- skipper_name: Name of the skipper
-- last_update_time: Time of last update of boat data in UTC iso format
-- latitude: latitude of the boat in decimal degree at the last update time
-- longitude: longitude of the boat in decimal degree at the last update time
-- heading: heading of the boat, not heading of course over ground.
-- heading_target: heading desired by the skipper, but constrained by tack, min_wind_angle and max_wind_angle
-- true_heading heading over ground
-- tack: current tack of the boat, either port or starboard or stopped.
-- min_wind_angle: the minimum true wind angle of the boat.
-- max_wind_angle: the maximum wind angle of the boat.
-- speed: speed in knots relative to ground at the time of last update
-- best_time_to_arrival: duration in second of the best race time of the boat
-- start_time: Time when starting race in UTC iso format
-- meteo_update_time: Time when meteo of the boat has last been updated in UTC iso format
-- wind_speed: Wind speed at boat position in m/s
-- wind_direction: Wind direction at boat position in degree
-- current_speed: Current speed at boat position in m/s
-- current_direction: Current direction at boat position in degree
-- information: a string to retain the last important event for the user interface
-- last_waypoint: The number of the last waypoint passed.
+- boat_key: Secret ID of the boat, known by the webmaster and the owner. (default: NA)
+- boat_name: Name of the boat (default: "x")
+- skipper_name: Name of the skipper (default: "x")
+- last_update_time: Time of last update of boat data in UTC iso format (default: creation time)
+- latitude: latitude of the boat in decimal degree at the last update time (default: see start waypoint)
+- longitude: longitude of the boat in decimal degree at the last update time (default: see start waypoint)
+- heading: heading of the boat, not heading of course over ground. (default: 0)
+- heading_target: heading desired by the skipper, but constrained by tack, min_wind_angle and max_wind_angle (default: 0)
+- true_heading heading over ground (default: 0)
+- tack: current tack of the boat, either port or starboard or stopped. (default: "stopped")
+- min_wind_angle: the minimum true wind angle of the boat. (default: 50)
+- max_wind_angle: the maximum wind angle of the boat. (default: 180)
+- speed: speed in knots relative to ground at the time of last update (default: 0)
+- best_time_to_arrival: duration in second of the best race time of the boat (default: 0)
+- start_time: Time when starting race in UTC iso format (default: creation time)
+- meteo_update_time: Time when meteo of the boat has last been updated in UTC iso format (default: creation time minus 1h)
+- wind_speed: Wind speed at boat position in m/s (default: 0)
+- wind_direction: Wind direction at boat position in degree (default: 0)
+- current_speed: Current speed at boat position in m/s (default: 0)
+- current_direction: Current direction at boat position in degree (default: 0)
+- information: a string to retain the last important event for the user interface (default: "Welcome on board")
+- last_waypoint: The number of the last waypoint passed. (default: 0)
 The database login data are stored in the secrets file of the Streamlit cloud. 
+
+## waypoint
+The waypoint.json file contains a list of waypoints with fields 'number','latitude','longitude','radius'. Numbers starts with 1. The default departure is number 1, latitude 50.97, longitude 1.87, radius 0.5 mille. The default arrivale is number 2, latitude 51.11, longitude 1.31, radius 0.5 mille. 
 
 # Functions descriptions
 
@@ -62,6 +66,7 @@ The updating process consists in these steps: Load the boat data in the database
 - If the boat is in the arrival zone (last waypoint of the list), returns the boat to start position with tack stopped. Indicate the arrival info in the information of the boat. Update best_time_to_arrival if applicable.
 - Save boat data in the database.
 - If the simulated boat is my boat, update map.
+
 ## GenerateKey
 The function GenerateKey() returns a random key with only capital letters and numbers. The key generates 8 random characters then encode them with the secret [KeyTester] secret_key. The random and encoded charactes are interlaced.
 ## ValidKey
@@ -90,7 +95,7 @@ The function CheckAground(latitude,longitude) check if the boat is aground using
 ## CheckWaypoint
 The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in a passage zone. It returns 0 if the boat is not in a passage zone or the waypoint 'number' if in a waypoint. Number 1 is the start zone.
 ## GetWaypoint
-The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. It contains a list of waypoints with fields 'number','latitude','longitude','radius'. There is at least a number 1 for dearture and a number 100 for arrival.
+The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. There is at least 2 waypoints, one for dearture and one for arrival.
 It outout a dictionnary with with 'number','latitude','longitude','radius'. Each contain a list of values.
 ## DrawInterface
 The function DrawInterface(boat_data, AIS_data) draws the user interface. It uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. A 5 miles circle with a line every 10 degree is drawn around my boat.

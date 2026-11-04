@@ -167,9 +167,7 @@ def SaveBoat(boat_data: dict) -> None:
     db.collection("sim_state").document(boat_key).set(boat_data)
 
 from importlib.metadata import version
-import inspect
 
-st.write(inspect.signature(firestore.client))
 st.write("Firebase Admin:", version("firebase-admin"))
 st.write("Google Cloud Firestore:", version("google-cloud-firestore"))
 

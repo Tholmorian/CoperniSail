@@ -6,6 +6,7 @@ import hashlib
 import hmac
 from firebase_admin import credentials, firestore
 import firebase_admin
+import requests
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]

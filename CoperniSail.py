@@ -4,7 +4,7 @@ import hashlib
 import streamlit as st
 import hashlib
 import hmac
-import streamlit as st
+
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -136,7 +136,25 @@ def GetWaypoint() -> dict:
 
     return waypoints_dict
 
+from google.cloud import firestore
+import streamlit as st
+
+def SaveBoat(boat_data: dict) -> None:
+    """
+    Saves the boat defined in the dictionary boat_data into the Firestore database.
+    Uses credentials stored under [Firestore] in Streamlit secrets.
+    """
+    # 1. Initialize Firestore client using secrets stored under [Firestore]
+    db = firestore.Client.from_service_account_info(st.secrets["Firestore"])
+
+    # 2. Extract the boat_key to use as the document ID
+    boat_key = boat_data.get("boat_key")
+    if not boat_key:
+        raise ValueError("boat_data must contain a valid 'boat_key'.")
+
+    # 3. Save or update the document in the 'sim_state' collection
+    db.collection("sim_state").document(boat_key).set(boat_data)
 
 waypoints=GetWaypoint()
-
 boat_data=Makeboat(GenerateKey(), waypoints)
+SaveBoat(boat_data)

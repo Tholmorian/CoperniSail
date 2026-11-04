@@ -43,7 +43,7 @@ The database data contains all the following fields for each entry:
 The database login data are stored in the secrets file of the Streamlit cloud. 
 
 ## waypoint
-The waypoint.json file contains a list of waypoints with fields 'number','latitude','longitude','radius'. Numbers starts with 1. The default departure is number 1, latitude 50.97, longitude 1.87, radius 0.5 mille. The default arrivale is number 2, latitude 51.11, longitude 1.31, radius 0.5 mille. 
+The waypoints.json file contains a list of waypoints with fields 'number','latitude','longitude','radius'. Numbers starts with 1. The default departure is number 1, latitude 50.97, longitude 1.87, radius 0.5 mille. The default arrivale is number 2, latitude 51.11, longitude 1.31, radius 0.5 mille. 
 
 # Functions descriptions
 

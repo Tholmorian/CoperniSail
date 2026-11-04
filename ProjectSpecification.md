@@ -76,7 +76,9 @@ the function GetMyBoat(key) Query the data of the boat with key in the Firestore
 ## GetLastBoat
 The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat data.
 ## Makeboat
-The function Makeboat(key,waypoints) creates a boat in the database with default values.
+The function Makeboat(key,waypoints) returns a dictionnary boat_data with default values.
+## SaveBoat
+The function SaveBoat(boat_data) save the boat defined in the dictionnary boat_data into the database. 
 ## GetWind
 The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in m/s.
 ## GetCurrent

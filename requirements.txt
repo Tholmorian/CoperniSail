@@ -9,3 +9,4 @@ copernicusmarine>=1.0.0
 numpy>=1.20.0
 pandas>=1.0.0
 roaring-landmask>=0.10.0
+shapely

@@ -145,8 +145,17 @@ def SaveBoat(boat_data: dict) -> None:
     Uses credentials stored under [Firestore] in Streamlit secrets.
     """
     # 1. Initialize Firestore client using secrets stored under [Firestore]
-    db = firestore.Client.from_service_account_info(st.secrets["Firestore"])
-
+    def get_firestore_client():
+        if not firebase_admin._apps:
+            secret_source = st.secrets.get("Firestore", st.secrets)
+            cred_dict = dict(secret_source)
+            if "private_key" in cred_dict:
+                cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+        return firestore.client(database_id="copernisail-boat-data")
+    db = get_firestore_client()
+    
     # 2. Extract the boat_key to use as the document ID
     boat_key = boat_data.get("boat_key")
     if not boat_key:

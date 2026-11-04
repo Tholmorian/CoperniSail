@@ -138,9 +138,6 @@ def GetWaypoint() -> dict:
 
     return waypoints_dict
 
-from google.cloud import firestore
-import streamlit as st
-
 def SaveBoat(boat_data: dict) -> None:
     """
     Saves the boat defined in the dictionary boat_data into the Firestore database.

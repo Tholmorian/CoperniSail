@@ -22,7 +22,7 @@ jobs:
           python-version: '3.10'
 
       - name: Run test script
-        run: python simulator_backend.py
+        run: python CoperniSail.py
 
       - name: Commit and push updated state file back to repo
         run: |

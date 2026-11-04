@@ -166,6 +166,8 @@ def SaveBoat(boat_data: dict) -> None:
     # 3. Save or update the document in the 'sim_state' collection
     db.collection("sim_state").document(boat_key).set(boat_data)
 
+st.write("Firebase Admin version:", firebase_admin.__version__)
+st.write("Firestore version:", google.cloud.firestore.__version__)
 waypoints=GetWaypoint()
 boat_data=Makeboat(GenerateKey(), waypoints)
-SaveBoat(boat_data)
+#SaveBoat(boat_data)

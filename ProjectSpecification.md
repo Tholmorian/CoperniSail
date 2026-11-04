@@ -72,13 +72,13 @@ The function GenerateKey() returns a random key with only capital letters and nu
 ## ValidKey
 The function ValidKey(key) returns true if the key is valid.
 ## GetMyBoat
-the function GetMyBoat(key) Query the data of the boat with key in the Firestore database. Use the secrets in [Firestore] to login.
+the function GetMyBoat(key) Query the data of the boat with key in the Firestore database. Update its last_update_time to now in the database. Use the secrets in [Firestore] to login. It returns a dictionnary with the boat_data.
 ## GetLastBoat
-The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat data.
+The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Update its last_update_time to now in the database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat_data.
 ## Makeboat
 The function Makeboat(key,waypoints) returns a dictionnary boat_data with default values.
 ## SaveBoat
-The function SaveBoat(boat_data) save the boat defined in the dictionnary boat_data into the database. 
+The function SaveBoat(boat_data) save the boat defined in the dictionnary boat_data into the database. Use the secrets in [Firestore] to login.
 ## GetWind
 The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in m/s.
 ## GetCurrent

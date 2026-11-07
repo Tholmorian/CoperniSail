@@ -194,7 +194,7 @@ def GetMyBoat(key):
 
   # Reference to the specific boat document by its key
   # (Adjust "boats" if your collection has a different name)
-  doc_ref = db.collection("boats").document(key)
+  doc_ref = db.collection("sim_state").document(key)
 
   doc = doc_ref.get()
 

@@ -58,7 +58,7 @@ def ValidKey(key: str) -> bool:
 
 from datetime import datetime, timedelta, timezone
 
-def Makeboat(key: str, waypoints: dict) -> dict:
+def MakeBoat(key: str, waypoints: dict) -> dict:
     """
     Returns a boat_data dictionary initialized with default values according to the project specification.
     """
@@ -215,7 +215,10 @@ def GetMyBoat(key):
   return boat_data
 
 
-key="X2NDL770REJDY8RE"
+key=GenerateKey()
+waypoint=GetWaypoint()
+boat_data=MakeBoat(key,waypoint)
+SaveBoat(boat_data)
 boat_info = GetMyBoat(key)
 
 if boat_info:

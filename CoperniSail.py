@@ -173,7 +173,7 @@ import streamlit as st
 def get_firestore_client():
   """Initializes and returns the Firestore client using Streamlit secrets."""
   if not firebase_admin._apps:
-    secret_source = st.secrets.get("firestore", st.secrets)
+    secret_source = st.secrets.get("Firestore", st.secrets)
     cred_dict = dict(secret_source)
     if "private_key" in cred_dict:
       cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")

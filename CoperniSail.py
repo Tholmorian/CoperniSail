@@ -163,11 +163,61 @@ def SaveBoat(boat_data: dict) -> None:
     # 3. Save or update the document in the 'sim_state' collection
     db.collection("sim_state").document(boat_key).set(boat_data)
 
-from importlib.metadata import version
+from datetime import datetime, timezone
+import firebase_admin
+from firebase_admin import credentials, firestore
+import streamlit as st
 
-st.write("Firebase Admin:", version("firebase-admin"))
-st.write("Google Cloud Firestore:", version("google-cloud-firestore"))
 
-waypoints=GetWaypoint()
-boat_data=Makeboat(GenerateKey(), waypoints)
-SaveBoat(boat_data)
+@st.cache_resource
+def get_firestore_client():
+  """Initializes and returns the Firestore client using Streamlit secrets."""
+  if not firebase_admin._apps:
+    secret_source = st.secrets.get("firestore", st.secrets)
+    cred_dict = dict(secret_source)
+    if "private_key" in cred_dict:
+      cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+
+  # Connect to your named database
+  return firestore.client(database_id="copernisail-boat-data")
+
+
+def GetMyBoat(key):
+  """Query the data of the boat with `key` in the Firestore database.
+
+  Updates its last_update_time to now and returns a dictionary with the
+  boat_data.
+  """
+  db = get_firestore_client()
+
+  # Reference to the specific boat document by its key
+  # (Adjust "boats" if your collection has a different name)
+  doc_ref = db.collection("boats").document(key)
+
+  doc = doc_ref.get()
+
+  if not doc.exists:
+    st.warning(f"No boat found with key: {key}")
+    return None
+
+  # Get the existing boat data as a dictionary
+  boat_data = doc.to_dict()
+
+  # Update last_update_time to current UTC time
+  now_utc = datetime.now(timezone.utc)
+  doc_ref.update({"last_update_time": now_utc})
+
+  # Optionally update the timestamp in the returned dictionary as well
+  boat_data["last_update_time"] = now_utc
+
+  return boat_data
+
+
+key="X2NDL770REJDY8RE"
+boat_info = GetMyBoat(key)
+
+if boat_info:
+  st.write(f"Loaded data for boat: {key}")
+  st.json(boat_info)

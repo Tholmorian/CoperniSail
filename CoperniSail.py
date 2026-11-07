@@ -206,11 +206,11 @@ def GetMyBoat(key):
   boat_data = doc.to_dict()
 
   # Update last_update_time to current UTC time
-  now_utc = datetime.now(timezone.utc)
-  doc_ref.update({"last_update_time": now_utc})
+  now_iso = datetime.now(timezone.utc).isoformat()
+  doc_ref.update({"last_update_time": now_iso})
 
   # Optionally update the timestamp in the returned dictionary as well
-  boat_data["last_update_time"] = now_utc
+  boat_data["last_update_time"] = now_iso
 
   return boat_data
 

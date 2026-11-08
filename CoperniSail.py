@@ -316,6 +316,7 @@ def GetWind(latitude,longitude):
   east_wind = w_speed_ms * math.sin(wind_dir*np.pi/180-np.pi/2)
   north_wind = w_speed_ms * math.cos(wind_dir*np.pi/180-np.pi/2)
   st.write(f"wind angle: {wind_dir}")
+  st.write(f"wind speed: {w_speed_ms}")
   return {"north_wind": north_wind, "east_wind": east_wind}
 
 #key=GenerateKey()

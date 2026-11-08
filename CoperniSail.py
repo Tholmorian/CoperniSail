@@ -266,6 +266,7 @@ def GetCurrent(latitude,longitude):
         end_datetime=current_time_str,
         variables=["uo", "vo"],
     )
+    st.json(ds_curr)
     point_data_curr = ds_curr.sel(
         latitude=latitude, longitude=longitude, method="nearest"
     )
@@ -285,5 +286,5 @@ boat_info = GetLastBoat()
 
 if boat_info:
   #st.write(f"Loaded data for boat: {key}")
-  current=GetCurrent(boat_info["latitude"],boat_info["longitude"]-0.1)
+  current=GetCurrent(49,-4)
   st.json(current)

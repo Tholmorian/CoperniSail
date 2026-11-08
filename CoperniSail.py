@@ -272,7 +272,7 @@ def GetCurrent(latitude,longitude):
     eastward_current = point_data_curr["uo"].values
     northward_current = point_data_curr["vo"].values
   except Exception:
-    eastward_current, northward_current = np.array([0.0]), np.array([0.0])
+    eastward_current, northward_current = 0,0
     st.warning("Could not load current")
   return {"northward_current":northward_current,"eastward_current":eastward_current}
 

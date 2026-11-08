@@ -9,6 +9,7 @@ import firebase_admin
 import requests
 import numpy as np
 import copernicusmarine
+import os
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]

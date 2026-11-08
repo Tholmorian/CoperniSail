@@ -80,9 +80,9 @@ The function Makeboat(key,waypoints) returns a dictionnary boat_data with defaul
 ## SaveBoat
 The function SaveBoat(boat_data) save the boat defined in the dictionnary boat_data into the database. Use the secrets in [Firestore] to login.
 ## GetWind
-The function GetWind(latitude,longitude) returns the a dictionnary with northward wind and eastward wind at the boat position. The values are in m/s.
+The function GetWind(latitude,longitude) returns the a dictionnary with north_wind and east_wind at the boat position. The values are in m/s.
 ## GetCurrent
-The function GetCurrent(latitude,longitude) returns the a dictionnary with northward current and eastward current at the boat position.
+The function GetCurrent(latitude,longitude) returns the a dictionnary with northward_current and eastward_current at the boat position.
 Uses the secret [CopernicusMarine] username and password to login in copernicusmarine API. The values are in m/s.
 ## GetAisData
 The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position. The data are 'Name':string,'Length':value in m,'Speed':value in m/s,'Heading':value in degree,'UpdateTime':'string with time in ISO format. 

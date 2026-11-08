@@ -285,5 +285,5 @@ boat_info = GetLastBoat()
 
 if boat_info:
   #st.write(f"Loaded data for boat: {key}")
-  current=GetCurrent(boat_info["latitude"],boat_info["longitude"])
+  current=GetCurrent(boat_info["latitude"],boat_info["longitude"]-0.1)
   st.json(current)

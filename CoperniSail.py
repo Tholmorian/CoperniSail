@@ -252,12 +252,12 @@ def GetLastBoat():
 
   return boat_data
 
-key=GenerateKey()
-waypoint=GetWaypoint()
-boat_data=MakeBoat(key,waypoint)
-SaveBoat(boat_data)
-boat_info = GetLastBoat(key)
+#key=GenerateKey()
+#waypoint=GetWaypoint()
+#boat_data=MakeBoat(key,waypoint)
+#SaveBoat(boat_data)
+boat_info = GetLastBoat()
 
 if boat_info:
-  st.write(f"Loaded data for boat: {key}")
+  #st.write(f"Loaded data for boat: {key}")
   st.json(boat_info)

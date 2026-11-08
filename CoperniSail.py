@@ -329,3 +329,4 @@ if boat_info:
   current=GetCurrent(boat_info["latitude"],boat_info["longitude"])
   st.json(current)
   wind=GetWind(boat_info["latitude"],boat_info["longitude"])
+  st.json(wind)

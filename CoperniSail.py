@@ -256,18 +256,18 @@ def GetLastBoat():
 
 def GetCurrent(latitude,longitude):
 # Fetch Ocean Currents
-    # Copernicus Credentials check
-    credentials_path = os.path.expanduser(
-        "~/.copernicusmarine/.copernicusmarine-credentials"
-    )
-    if not os.path.exists(credentials_path):
-      try:
-        copernicusmarine.login(
-            username=st.secrets["CopernicusMarine"]["username"],
-            password=st.secrets["CopernicusMarine"]["password"],
-        )
-      except Exception as e:
-        st.error(f"Copernicus login failed: {e}")
+  # Copernicus Credentials check
+  credentials_path = os.path.expanduser(
+      "~/.copernicusmarine/.copernicusmarine-credentials"
+  )
+  if not os.path.exists(credentials_path):
+    try:
+      copernicusmarine.login(
+          username=st.secrets["CopernicusMarine"]["username"],
+          password=st.secrets["CopernicusMarine"]["password"],
+      )
+    except Exception as e:
+      st.error(f"Copernicus login failed: {e}")
   try:
     ds_curr = copernicusmarine.open_dataset(
         dataset_id="cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT15M-i",

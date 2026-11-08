@@ -213,13 +213,50 @@ def GetMyBoat(key):
   boat_data["last_update_time"] = now_iso
 
   return boat_data
+from datetime import datetime, timezone
+from firebase_admin import firestore
 
+
+def GetLastBoat():
+  """Query the data of the boat with the oldest last_update_time in the
+
+  Firestore database. Update its last_update_time to now in UTC ISO format.
+  Uses the secrets under [firestore] to login. Returns a dictionary with the
+  boat_data.
+  """
+  db = get_firestore_client()  # Uses your cached Firestore connection with [firestore] secrets
+
+  # Query the boats collection to find the boat with the oldest last_update_time
+  query = (
+      db.collection("sim_state")
+      .order_by("last_update_time", direction=firestore.Query.ASCENDING)
+      .limit(1)
+  )
+  docs = list(query.stream())
+
+  if not docs:
+    return None
+
+  # Get the oldest document and its data
+  doc = docs[0]
+  boat_data = doc.to_dict()
+
+  # Generate current UTC time in ISO format string
+  now_iso = datetime.now(timezone.utc).isoformat()
+
+  # Update the last_update_time field in Firestore
+  doc.reference.update({"last_update_time": now_iso})
+
+  # Update the timestamp in the returned dictionary as well
+  boat_data["last_update_time"] = now_iso
+
+  return boat_data
 
 key=GenerateKey()
 waypoint=GetWaypoint()
 boat_data=MakeBoat(key,waypoint)
 SaveBoat(boat_data)
-boat_info = GetMyBoat(key)
+boat_info = GetLastBoat(key)
 
 if boat_info:
   st.write(f"Loaded data for boat: {key}")

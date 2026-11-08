@@ -271,6 +271,7 @@ def GetCurrent(latitude,longitude):
     except Exception as e:
       st.error(f"Copernicus login failed: {e}")
   try:
+    now = datetime.now(timezone.utc)
     current_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
     ds_curr = copernicusmarine.open_dataset(
         dataset_id="cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT15M-i",

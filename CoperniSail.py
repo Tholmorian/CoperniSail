@@ -252,6 +252,30 @@ def GetLastBoat():
 
   return boat_data
 
+def GetCurrent(latitude,longitude):
+# Fetch Ocean Currents
+  try:
+    ds_curr = copernicusmarine.open_dataset(
+        dataset_id="cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT15M-i",
+        minimum_latitude=latitude,
+        maximum_latitude=latitude,
+        minimum_longitude=longitude,
+        maximum_longitude=longitude,
+        start_datetime=current_time_str,
+        end_datetime=current_time_str,
+        variables=["uo", "vo"],
+    )
+    point_data_curr = ds_curr.sel(
+        latitude=latitude, longitude=longitude, method="nearest"
+    )
+    eastward_current = point_data_curr["uo"].values
+    northward_current = point_data_curr["vo"].values
+  except Exception:
+    eastward_current, northward_current = np.array([0.0]), np.array([0.0])
+    st.warning("Could not load current")
+  return {"northward_current":northward_current,"eastward_current":eastward_current}
+
+
 #key=GenerateKey()
 #waypoint=GetWaypoint()
 #boat_data=MakeBoat(key,waypoint)

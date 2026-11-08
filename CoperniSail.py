@@ -329,6 +329,6 @@ if boat_info:
   #st.write(f"Loaded data for boat: {key}")
   current=GetCurrent(boat_info["latitude"],boat_info["longitude"])
   st.json(current)
-  #wind=GetWind(boat_info["latitude"],boat_info["longitude"])
-  wind=GetWind(50.50,1.23)
+  wind=GetWind(boat_info["latitude"],boat_info["longitude"])
+  #wind=GetWind(50.50,1.23)
   st.json(wind)

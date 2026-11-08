@@ -283,12 +283,11 @@ def GetCurrent(latitude,longitude):
         end_datetime=current_time_str,
         variables=["uo", "vo"],
     )
-    st.json(ds_curr)
     point_data_curr = ds_curr.sel(
         latitude=latitude, longitude=longitude, method="nearest"
     )
-    eastward_current = point_data_curr["uo"].values
-    northward_current = point_data_curr["vo"].values
+    eastward_current = point_data_curr["uo"].values[0]
+    northward_current = point_data_curr["vo"].values[0]
   except Exception as e:
     eastward_current, northward_current = 0,0
     st.warning(f"Could not load current: {e}")

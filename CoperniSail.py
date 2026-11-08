@@ -316,7 +316,7 @@ def GetWind(latitude,longitude):
   alpha = math.radians( wind_dir)
   east_wind = w_speed_ms * math.sin(alpha)
   north_wind = w_speed_ms * math.cos(alpha)
-  return {"north_wind": north_wind, "east_wind": east_wind}
+  return {"north_wind": w_speed_ms, "east_wind": alpha}
 
 #key=GenerateKey()
 #waypoint=GetWaypoint()

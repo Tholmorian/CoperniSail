@@ -10,6 +10,7 @@ import requests
 import numpy as np
 import copernicusmarine
 import os
+import math
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -293,6 +294,29 @@ def GetCurrent(latitude,longitude):
     st.warning(f"Could not load current: {e}")
   return {"northward_current":northward_current,"eastward_current":eastward_current}
 
+def GetWind(latitude,longitude):
+  # Fetch Live Predicted Wind via Open-Meteo API (No API key required)
+  w_speed_ms = 0.0
+  wind_dir = 180.0
+  try:
+    weather_url = (
+        f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
+        "&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms"
+    )
+    resp = requests.get(weather_url, timeout=5)
+    resp.raise_for_status()
+    current_weather = resp.json().get("current", {})
+    w_speed_ms = current_weather.get("wind_speed_10m", 0.0)
+    wind_dir = current_weather.get("wind_direction_10m", 180.0)
+    
+  except Exception:
+    st.warning("Could not load wind")
+  # Convert meteorological wind direction (direction FROM which wind blows)
+  # into eastward (u) and northward (v) velocity components.
+  alpha = math.radians(270 - wind_dir)
+  eastward_wind = w_speed_ms * math.cos(alpha)
+  northward_wind = w_speed_ms * math.sin(alpha)
+  return {"northward_wind": northward_wind, "eastward_wind": eastward_wind}
 
 #key=GenerateKey()
 #waypoint=GetWaypoint()
@@ -304,3 +328,4 @@ if boat_info:
   #st.write(f"Loaded data for boat: {key}")
   current=GetCurrent(boat_info["latitude"],boat_info["longitude"])
   st.json(current)
+  wind=GetWind(boat_info["latitude"],boat_info["longitude"])

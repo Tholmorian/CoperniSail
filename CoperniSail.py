@@ -313,10 +313,10 @@ def GetWind(latitude,longitude):
     st.warning("Could not load wind")
   # Convert meteorological wind direction (direction FROM which wind blows)
   # into eastward (u) and northward (v) velocity components.
-  alpha = math.radians( wind_dir)
-  east_wind = w_speed_ms * math.sin(alpha)
-  north_wind = w_speed_ms * math.cos(alpha)
-  return {"north_wind": w_speed_ms, "east_wind": alpha}
+  east_wind = w_speed_ms * math.sin(wind_dir-np.pi/2)
+  north_wind = w_speed_ms * math.cos(wind_dir-np.pi/2)
+  st.write(f"wind angle: {wind_dir}")
+  return {"north_wind": north_wind, "east_wind": east_wind}
 
 #key=GenerateKey()
 #waypoint=GetWaypoint()

@@ -77,6 +77,8 @@ the function GetMyBoat(key) Query the data of the boat with key in the Firestore
 The function GetLastBoat() Query the data of the boat with the oldest last_update_time in the Firestore database. Update its last_update_time to now in the database. Use the secrets under [Firestore] to login. It returns a dictionnary with the boat_data.
 ## Makeboat
 The function Makeboat(key,waypoints) returns a dictionnary boat_data with default values.
+##GetFirestoreClient
+The function GetFirestoreClient() connect to the firestore cloud database using the secrets in [Firestore] to login. It returns a firestore client connected to the database_id="copernisail-boat-data"
 ## SaveBoat
 The function SaveBoat(boat_data) save the boat defined in the dictionnary boat_data into the database. Use the secrets in [Firestore] to login.
 ## GetWind

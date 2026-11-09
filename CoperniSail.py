@@ -313,8 +313,8 @@ def GetWind(latitude,longitude):
     st.warning("Could not load wind")
   # Convert meteorological wind direction (direction FROM which wind blows)
   # into eastward (u) and northward (v) velocity components.
-  east_wind = w_speed_ms * math.sin(wind_dir*np.pi/180-np.pi/2)
-  north_wind = w_speed_ms * math.cos(wind_dir*np.pi/180-np.pi/2)
+  east_wind = w_speed_ms * math.sin(wind_dir*np.pi/180)
+  north_wind = w_speed_ms * math.cos(wind_dir*np.pi/180)
   st.write(f"wind angle: {wind_dir}")
   st.write(f"wind speed: {w_speed_ms}")
   return {"north_wind": north_wind, "east_wind": east_wind}

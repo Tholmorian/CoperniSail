@@ -824,6 +824,7 @@ current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longit
 BoatData["current_speed"]=current_speed
 BoatData["current_direction"]=current_direction
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
+st.write(BoatData)
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 st.write(BoatData)
 st.write(AisData)

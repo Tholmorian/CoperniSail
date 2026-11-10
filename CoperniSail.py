@@ -312,6 +312,7 @@ def GetAisData(latitude,longitude):
     resp = requests.get(ais_url)
     resp.raise_for_status()
     geo_data = resp.json()
+    st.write(geo_data)
   except Exception:
     st.warning("Could not load AIS data")
   if geo_data and "features" in geo_data:
@@ -750,7 +751,7 @@ def SimulateMovement(time, boat_data, AIS_data):
         raise ValueError("AIS_data is missing a required field.")
 
     vessel_count = min(
-        len(AIS_data["latitude""latitude"]),
+        len(AIS_data["latitude"]),
         len(AIS_data["longitude"]),
         len(AIS_data["speed"]),
         len(AIS_data["heading"]),

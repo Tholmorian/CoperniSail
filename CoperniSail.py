@@ -314,14 +314,11 @@ def GetAisData(latitude,longitude):
   # Fetch AIS Vessels
   radius_nm = 5
   lat_offset = radius_nm / 60.0
-  lon_offset = radius_nm / (
-      60.0 * math.cos(math.radians(st.session_state["SIM_LATITUDE"]))
-  )
-  min_lat = st.session_state["SIM_LATITUDE"] - lat_offset
-  max_lat = st.session_state["SIM_LATITUDE"] + lat_offset
-  min_lon = st.session_state["SIM_LONGITUDE"] - lon_offset
-  max_lon = st.session_state["SIM_LONGITUDE"] + lon_offset
-
+  lon_offset = radius_nm / (60.0 * math.cos(math.radians(latitude)))
+  min_lat = latitude - lat_offset
+  max_lat = latitude + lat_offset
+  min_lon = longitude - lon_offset
+  max_lon = longitude + lon_offset
   ais_url = f"https://ais.openwaters.io/v1/vessels?bbox={min_lat},{min_lon},{max_lat},{max_lon}"
   geo_data = None
   try:

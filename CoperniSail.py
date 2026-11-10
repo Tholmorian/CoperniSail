@@ -815,18 +815,15 @@ newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds
 
 BoatData["tack"]="port"
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
-st.write(wind_speed)
-st.write(BoatData["wind_speed"])
 BoatData["wind_speed"]=wind_speed
 BoatData["wind_direction"]=wind_direction
 current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])
 BoatData["current_speed"]=current_speed
 BoatData["current_direction"]=current_direction
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-
+st.write(AisData)
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
-st.write(BoatData)
 st.write(AisData)
 colision=CheckColision(BoatData, AisData)
-st.write(colision)
+
 

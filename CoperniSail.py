@@ -282,7 +282,7 @@ def GetCurrent(latitude,longitude):
   except Exception as e:
     current_speed, current_direction = 0,0
     st.warning(f"Could not load current: {e}")
-  return {"current_speed":current_speed,"current_direction":current_direction}
+  return current_speed, current_direction
 
 def GetWind(latitude,longitude):
   # Fetch Live Predicted Wind via Open-Meteo API (No API key required)
@@ -300,7 +300,7 @@ def GetWind(latitude,longitude):
     wind_dir = current_weather.get("wind_direction_10m", 180.0)
   except Exception:
     st.warning("Could not load wind")
-  return {"wind_speed": w_speed_ms, "wind_direction": wind_dir}
+  return w_speed_ms,  wind_dir
 
 def GetAisData(latitude,longitude):
   # Fetch AIS Vessels
@@ -812,7 +812,6 @@ def SimulateMovement(time, boat_data, AIS_data):
         AIS_data[time_key][i] = target_time_str
 
     return boat_data, AIS_data
-
 
 
 BoatData = GetLastBoat()

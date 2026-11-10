@@ -337,6 +337,16 @@ def GetAisData(latitude,longitude):
       AisData["name"].append(props.get("name"))
   return AisData
 
+from roaring_landmask import RoaringLandmask
+
+@st.cache_resource
+def GetLandmask():
+  return RoaringLandmask.new()
+
+def CheckAground(latitude, longitude):
+  # roaring-landmask expects longitude first, then latitude.
+  return GetLandmask().contains(float(longitude), float(latitude))
+    
 #key=GenerateKey()
 #waypoint=GetWaypoint()
 #boat_data=MakeBoat(key,waypoint)

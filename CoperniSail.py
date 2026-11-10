@@ -803,9 +803,7 @@ def SimulateMovement(time, boat_data, AIS_data):
 
 
 BoatData = GetLastBoat()
-
-last_update_time = _to_utc(boat_data["last_update_time"])
-last_update_time += timedelta(seconds=10)
+st.write(BoatData)
 
 newTime= (datetime.fromisoformat(boat_data["last_update_time"])+timedelta(seconds=10)).isoformat()
 
@@ -820,7 +818,7 @@ current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longit
 BoatData["current_speed"]=current_speed
 BoatData["current_direction"]=current_direction
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-st.write(BoatData)
+
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 st.write(BoatData)
 st.write(AisData)

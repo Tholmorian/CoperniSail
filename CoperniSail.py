@@ -403,7 +403,7 @@ import math
 
 
 def CheckColision(boat_data, AIS_data):
-  """Verifies collision between the current boat and the closest boat in AIS_data.
+  """Verifies collision between the current boat and the closest boat in AIS_data."""
   def project_polygon(axis, polygon):
     """Projects polygon vertices onto a given axis."""
     dots = [p[0] * axis[0] + p[1] * axis[1] for p in polygon]
@@ -411,7 +411,7 @@ def CheckColision(boat_data, AIS_data):
     Calculates triangles for both boats using DrawBoatTriangle and checks
     for intersection. Returns the AIS data dictionary of the collided boat,
     or an empty list [] otherwise.
-    """
+
     if not AIS_data:
       return []
         

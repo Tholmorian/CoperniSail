@@ -542,8 +542,8 @@ def SimulateMovement(time, boat_data, AIS_data):
     min_wind_angle = boat_data.get("min_wind_angle", 50.0)
     max_wind_angle = boat_data.get("max_wind_angle", 180.0)
 
-    current_speed_ms = boat_data.get("current_speed", 0.0)
-    current_dir = boat_data.get("current_direction", 0.0)
+    current_speed_ms = boat_data.get("speed", 0.0)
+    current_dir = boat_data.get("heading", 0.0)
 
     # Convert speeds from m/s to knots for sailing calculations
     # (1 m/s = 1.94384 knots)

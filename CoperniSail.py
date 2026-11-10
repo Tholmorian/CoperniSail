@@ -805,7 +805,7 @@ def SimulateMovement(time, boat_data, AIS_data):
 BoatData = GetLastBoat()
 st.write(BoatData)
 
-newTime= (datetime.fromisoformat(boat_data["last_update_time"])+timedelta(seconds=10)).isoformat()
+newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
 
 
 BoatData["tack"]="port"

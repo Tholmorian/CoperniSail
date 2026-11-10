@@ -346,7 +346,60 @@ def GetLandmask():
 def CheckAground(latitude, longitude):
   # roaring-landmask expects longitude first, then latitude.
   return GetLandmask().contains(float(longitude), float(latitude))
-    
+
+def DrawBoatTriangle(latitude, longitude, length, heading):
+  """Calculates the 3 vertices of a triangle centered at the boat's position,
+  scaled to the given length with a width of 1/4 of the length,
+  and oriented according to the heading (in degrees).
+  Returns a dictionary with keys 'latitude' and 'longitude',
+  each containing a list of 3 values [bow, port, starboard].
+  """
+  if not length or length <= 0:
+    length = 20.0  # Default fallback length in meters
+  # Width is 1/4 of the boat length as requested
+  beam = length / 4.0
+  if heading is None:
+    heading = 0.0
+  theta = math.radians(heading)
+  meters_per_deg_lat = 111111.0
+  meters_per_deg_lon = 111111.0 * math.cos(math.radians(latitude))
+  # Bow and stern center offsets in meters
+  bow_m_lat = (length / 2.0) * math.cos(theta)
+  bow_m_lon = (length / 2.0) * math.sin(theta)
+  stern_m_lat = -(length / 2.0) * math.cos(theta)
+  stern_m_lon = -(length / 2.0) * math.sin(theta)
+  # Starboard/Port beam offsets in meters
+  right_m_lat = -(beam / 2.0) * math.sin(theta)
+  right_m_lon = (beam / 2.0) * math.cos(theta)
+  # Vertex coordinates
+  bow_lat = latitude + (bow_m_lat / meters_per_deg_lat)
+  bow_lon = longitude + (bow_m_lon / meters_per_deg_lon)
+  port_lat = (
+      latitude
+      + (stern_m_lat / meters_per_deg_lat)
+      - (right_m_lat / meters_per_deg_lat)
+  )
+  port_lon = (
+      longitude
+      + (stern_m_lon / meters_per_deg_lon)
+      - (right_m_lon / meters_per_deg_lon)
+  )
+  stbd_lat = (
+      latitude
+      + (stern_m_lat / meters_per_deg_lat)
+      + (right_m_lat / meters_per_deg_lat)
+  )
+  stbd_lon = (
+      longitude
+      + (stern_m_lon / meters_per_deg_lon)
+      + (right_m_lon / meters_per_deg_lon)
+  )
+  return {
+      "latitude": [bow_lat, port_lat, stbd_lat],
+      "longitude": [bow_lon, port_lon, stbd_lon],
+  }
+
+
 #key=GenerateKey()
 #waypoint=GetWaypoint()
 #boat_data=MakeBoat(key,waypoint)

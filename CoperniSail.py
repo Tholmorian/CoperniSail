@@ -501,148 +501,6 @@ def CheckColision(boat_data, AIS_data):
 
 
 
-import math
-from datetime import datetime, timezone
-
-
-EARTH_RADIUS = 6371000.0
-MAX_BOAT_SPEED = 5.0 * 0.514444  # 5 knots in m/s
-
-
-def _to_utc(value):
-    """Convert a datetime or ISO timestamp to timezone-aware UTC."""
-    if isinstance(value, datetime):
-        dt = value
-    else:
-        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-
-    return dt.astimezone(timezone.utc)
-
-
-def _normalize_angle(angle):
-    """Normalize heading to [0, 360)."""
-    return angle % 360.0
-
-
-def _signed_angle(angle):
-    """Normalize an angle to [-180, 180)."""
-    return (angle + 180.0) % 360.0 - 180.0
-
-
-def _move_position(latitude, longitude, east_velocity,
-                   north_velocity, duration):
-    """
-    Move a GPS position using east/north velocity components.
-
-    Velocity in m/s, duration in seconds.
-    Returns (new_latitude, new_longitude).
-    """
-    east_distance = east_velocity * duration
-    north_distance = north_velocity * duration
-
-    distance = math.hypot(east_distance, north_distance)
-
-    if distance == 0:
-        return latitude, longitude
-
-    bearing = math.atan2(east_distance, north_distance)
-    angular_distance = distance / EARTH_RADIUS
-
-    lat1 = math.radians(latitude)
-    lon1 = math.radians(longitude)
-
-    lat2 = math.asin(
-        math.sin(lat1) * math.cos(angular_distance)
-        + math.cos(lat1) * math.sin(angular_distance)
-        * math.cos(bearing)
-    )
-
-    lon2 = lon1 + math.atan2(
-        math.sin(bearing) * math.sin(angular_distance)
-        * math.cos(lat1),
-        math.cos(angular_distance)
-        - math.sin(lat1) * math.sin(lat2)
-    )
-
-    new_latitude = math.degrees(lat2)
-    new_longitude = (math.degrees(lon2) + 180) % 360 - 180
-
-    return new_latitude, new_longitude
-
-
-def _heading_to_vector(speed, heading):
-    """Convert speed and heading into east/north velocity."""
-    angle = math.radians(heading)
-
-    east = speed * math.sin(angle)
-    north = speed * math.cos(angle)
-
-    return east, north
-
-
-def _vector_to_heading(east, north):
-    """Convert east/north velocity into heading."""
-    if math.hypot(east, north) < 1e-9:
-        return 0.0
-
-    return _normalize_angle(math.degrees(math.atan2(east, north)))
-
-
-def _get_sailing_heading(boat_data):
-    """
-    Find the heading closest to heading_target,
-    constrained by tack and true wind angle.
-    """
-    target = _normalize_angle(
-        float(boat_data.get("heading_target", boat_data.get("heading", 0)))
-    )
-
-    tack = str(boat_data.get("tack", "stopped")).lower()
-
-    if tack == "stopped":
-        return _normalize_angle(float(boat_data.get("heading", 0)))
-    
-    st.write(boat_data.get("wind_direction"))
-    wind_direction = float(boat_data.get("wind_direction", 0))
-
-    min_angle = float(boat_data.get("min_wind_angle", 50))
-    max_angle = float(boat_data.get("max_wind_angle", 180))
-
-    # Avoid invalid wind-angle limits.
-    min_angle = max(0.0, min(180.0, min_angle))
-    max_angle = max(0.0, min(180.0, max_angle))
-
-    if min_angle > max_angle:
-        min_angle, max_angle = max_angle, min_angle
-
-    # Signed angle between wind direction and target heading.
-    relative_target = _signed_angle(target - wind_direction)
-
-    if tack == "port":
-        # Port tack: wind comes from the port side.
-        relative_heading = min(max(relative_target, min_angle), max_angle)
-
-    elif tack == "starboard":
-        # Starboard tack: wind comes from the starboard side.
-        relative_heading = min(max(relative_target, -max_angle), -min_angle)
-
-    else:
-        # Unknown tack: keep the boat stopped.
-        return _normalize_angle(float(boat_data.get("heading", 0)))
-
-    return _normalize_angle(wind_direction + relative_heading)
-
-
-def _get_ais_key(AIS_data, *names):
-    """Find an AIS field, accepting lowercase and specification names."""
-    for name in names:
-        if name in AIS_data:
-            return name
-    return None
-
 
 def SimulateMovement(time, boat_data, AIS_data):
     """
@@ -662,6 +520,144 @@ def SimulateMovement(time, boat_data, AIS_data):
     boat_data, AIS_data
         Both dictionaries are updated in place.
     """
+  
+    EARTH_RADIUS = 6371000.0
+    MAX_BOAT_SPEED = 5.0 * 0.514444  # 5 knots in m/s
+
+    def _to_utc(value):
+        """Convert a datetime or ISO timestamp to timezone-aware UTC."""
+        if isinstance(value, datetime):
+            dt = value
+        else:
+            dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        return dt.astimezone(timezone.utc)
+
+
+    def _normalize_angle(angle):
+        """Normalize heading to [0, 360)."""
+        return angle % 360.0
+
+
+    def _signed_angle(angle):
+        """Normalize an angle to [-180, 180)."""
+        return (angle + 180.0) % 360.0 - 180.0
+
+
+    def _move_position(latitude, longitude, east_velocity,
+                      north_velocity, duration):
+        """
+        Move a GPS position using east/north velocity components.
+
+        Velocity in m/s, duration in seconds.
+        Returns (new_latitude, new_longitude).
+        """
+        east_distance = east_velocity * duration
+        north_distance = north_velocity * duration
+
+        distance = math.hypot(east_distance, north_distance)
+
+        if distance == 0:
+            return latitude, longitude
+
+        bearing = math.atan2(east_distance, north_distance)
+        angular_distance = distance / EARTH_RADIUS
+
+        lat1 = math.radians(latitude)
+        lon1 = math.radians(longitude)
+
+        lat2 = math.asin(
+            math.sin(lat1) * math.cos(angular_distance)
+            + math.cos(lat1) * math.sin(angular_distance)
+            * math.cos(bearing)
+        )
+
+        lon2 = lon1 + math.atan2(
+            math.sin(bearing) * math.sin(angular_distance)
+            * math.cos(lat1),
+            math.cos(angular_distance)
+            - math.sin(lat1) * math.sin(lat2)
+        )
+
+        new_latitude = math.degrees(lat2)
+        new_longitude = (math.degrees(lon2) + 180) % 360 - 180
+
+        return new_latitude, new_longitude
+
+
+    def _heading_to_vector(speed, heading):
+        """Convert speed and heading into east/north velocity."""
+        angle = math.radians(heading)
+
+        east = speed * math.sin(angle)
+        north = speed * math.cos(angle)
+
+        return east, north
+
+
+    def _vector_to_heading(east, north):
+        """Convert east/north velocity into heading."""
+        if math.hypot(east, north) < 1e-9:
+            return 0.0
+
+        return _normalize_angle(math.degrees(math.atan2(east, north)))
+
+
+    def _get_sailing_heading(boat_data):
+        """
+        Find the heading closest to heading_target,
+        constrained by tack and true wind angle.
+        """
+        target = _normalize_angle(
+            float(boat_data.get("heading_target", boat_data.get("heading", 0)))
+        )
+
+        tack = str(boat_data.get("tack", "stopped")).lower()
+
+        if tack == "stopped":
+            return _normalize_angle(float(boat_data.get("heading", 0)))
+        
+        st.write(boat_data.get("wind_direction"))
+        wind_direction = float(boat_data.get("wind_direction", 0))
+
+        min_angle = float(boat_data.get("min_wind_angle", 50))
+        max_angle = float(boat_data.get("max_wind_angle", 180))
+
+        # Avoid invalid wind-angle limits.
+        min_angle = max(0.0, min(180.0, min_angle))
+        max_angle = max(0.0, min(180.0, max_angle))
+
+        if min_angle > max_angle:
+            min_angle, max_angle = max_angle, min_angle
+
+        # Signed angle between wind direction and target heading.
+        relative_target = _signed_angle(target - wind_direction)
+
+        if tack == "port":
+            # Port tack: wind comes from the port side.
+            relative_heading = min(max(relative_target, min_angle), max_angle)
+
+        elif tack == "starboard":
+            # Starboard tack: wind comes from the starboard side.
+            relative_heading = min(max(relative_target, -max_angle), -min_angle)
+
+        else:
+            # Unknown tack: keep the boat stopped.
+            return _normalize_angle(float(boat_data.get("heading", 0)))
+
+        return _normalize_angle(wind_direction + relative_heading)
+
+
+    def _get_ais_key(AIS_data, *names):
+        """Find an AIS field, accepting lowercase and specification names."""
+        for name in names:
+            if name in AIS_data:
+                return name
+        return None
+
     simulation_time = _to_utc(time)
     target_time_str = simulation_time.isoformat()
 

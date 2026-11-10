@@ -742,13 +742,6 @@ def SimulateMovement(time, boat_data, AIS_data):
     if not AIS_data:
         return boat_data, AIS_data
 
-    # Support the parallel-list format used by CoperniSail.
-    "latitude" = "latitude"
-    "longitude" = _get_ais_key(AIS_data, "longitude", "Longitude")
-    "speed" = _get_ais_key(AIS_data, "speed", "Speed")
-    "heading" = _get_ais_key(AIS_data, "heading", "Heading")
-    "update_time" = _get_ais_key(AIS_data, "update_time", "UpdateTime")
-
     required_keys = [
         "latitude", "longitude", "speed", "heading", "update_time"
     ]

@@ -14,7 +14,6 @@ import math
 from datetime import datetime, timedelta, timezone
 import json
 
-
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
     charset = string.ascii_uppercase + string.digits
@@ -395,8 +394,6 @@ def DrawBoatTriangle(latitude, longitude, length, heading):
       "longitude": [bow_lon, port_lon, stbd_lon],
   }
 
-import math
-
 
 def CheckColision(boat_data, AIS_data):
   """Verifies collision between the current boat and the closest boat in AIS_data.
@@ -501,12 +498,7 @@ def CheckColision(boat_data, AIS_data):
     return closest_boat
   return []
 
-from datetime import datetime, timezone
-import math
 
-
-from datetime import datetime, timezone
-import math
 
 
 def SimulateMovement(time, boat_data, AIS_data):
@@ -700,10 +692,15 @@ def SimulateMovement(time, boat_data, AIS_data):
 
 BoatData = GetLastBoat()
 BoatData["tack"]="port"
-GetWind(BoatData["latitude"],BoatData["longitude"])
-
-st.write(BoatData)
+wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
+BoatData["wind_speed"]=wind_speed
+BoatData["wind_direction"]=wind_direction
+current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])
+BoatData["current_speed"]=current_speed
+BoatData["current_direction"]=current_direction
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
+BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
+st.write(BoatData)
 st.write(AisData)
 colision=CheckColision(BoatData, AisData)
 st.write(colision)

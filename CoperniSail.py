@@ -11,6 +11,8 @@ import numpy as np
 import copernicusmarine
 import os
 import math
+from datetime import datetime, timedelta, timezone
+import json
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -60,8 +62,6 @@ def ValidKey(key: str) -> bool:
     # 5. Constant-time comparison to verify validity
     return hmac.compare_digest(provided_encoded, expected_encoded)
 
-from datetime import datetime, timedelta, timezone
-
 def MakeBoat(key: str, waypoints: dict) -> dict:
     """
     Returns a boat_data dictionary initialized with default values according to the project specification.
@@ -110,7 +110,7 @@ def MakeBoat(key: str, waypoints: dict) -> dict:
 
     return boat_data
 
-import json
+
 
 def GetWaypoint() -> dict:
     """
@@ -172,10 +172,6 @@ def SaveBoat(boat_data: dict) -> None:
     # 3. Save or update the document in the 'sim_state' collection
     db.collection("sim_state").document(boat_key).set(boat_data)
 
-from datetime import datetime, timezone
-import firebase_admin
-from firebase_admin import credentials, firestore
-import streamlit as st
 
 
 

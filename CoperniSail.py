@@ -13,6 +13,7 @@ import os
 import math
 from datetime import datetime, timedelta, timezone
 import json
+from roaring_landmask import RoaringLandmask
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -332,7 +333,6 @@ def GetAisData(latitude,longitude):
       AisData["name"].append(props.get("name"))
   return AisData
 
-from roaring_landmask import RoaringLandmask
 
 @st.cache_resource
 def GetLandmask():
@@ -818,6 +818,8 @@ def SimulateMovement(time, boat_data, AIS_data):
 BoatData = GetLastBoat()
 BoatData["tack"]="port"
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
+st.write(wind_speed)
+st.write(BoatData["wind_speed"])
 BoatData["wind_speed"]=wind_speed
 BoatData["wind_direction"]=wind_direction
 current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])

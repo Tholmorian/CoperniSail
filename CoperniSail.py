@@ -524,10 +524,8 @@ def SimulateMovement(time, boat_data, AIS_data):
             dt = value
         else:
             dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-
         return dt.astimezone(timezone.utc)
 
 
@@ -809,7 +807,7 @@ BoatData = GetLastBoat()
 last_update_time = _to_utc(boat_data["last_update_time"])
 last_update_time += timedelta(seconds=10)
 
-newTime= (_to_utc(boat_data["last_update_time"])+timedelta(seconds=10)).isoformat()
+newTime= (datetime.fromisoformat(boat_data["last_update_time"])+timedelta(seconds=10)).isoformat()
 
 
 BoatData["tack"]="port"

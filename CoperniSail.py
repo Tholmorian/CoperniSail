@@ -201,9 +201,6 @@ def GetMyBoat(key):
   now_iso = datetime.now(timezone.utc).isoformat()
   doc_ref.update({"last_update_time": now_iso})
 
-  # Optionally update the timestamp in the returned dictionary as well
-  boat_data["last_update_time"] = now_iso
-
   return boat_data
 
 
@@ -237,9 +234,6 @@ def GetLastBoat():
 
   # Update the last_update_time field in Firestore
   doc.reference.update({"last_update_time": now_iso})
-
-  # Update the timestamp in the returned dictionary as well
-  boat_data["last_update_time"] = now_iso
 
   return boat_data
 
@@ -811,6 +805,13 @@ def SimulateMovement(time, boat_data, AIS_data):
 
 
 BoatData = GetLastBoat()
+
+last_update_time = _to_utc(boat_data["last_update_time"])
+last_update_time += timedelta(seconds=10)
+
+newTime= (_to_utc(boat_data["last_update_time"])+timedelta(seconds=10)).isoformat()
+
+
 BoatData["tack"]="port"
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
 st.write(wind_speed)

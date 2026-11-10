@@ -604,7 +604,8 @@ def _get_sailing_heading(boat_data):
 
     if tack == "stopped":
         return _normalize_angle(float(boat_data.get("heading", 0)))
-
+    
+    st.write(wind_direction)
     wind_direction = float(boat_data.get("wind_direction", 0))
 
     min_angle = float(boat_data.get("min_wind_angle", 50))

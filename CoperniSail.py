@@ -501,193 +501,317 @@ def CheckColision(boat_data, AIS_data):
 
 
 
-def SimulateMovement(time, boat_data, AIS_data):
-  """Simulates the movement of the boat and AIS boats until the requested time,
+import math
+from datetime import datetime, timezone
 
-  using the exact fields from BoatData and AIS_data dictionaries.
-  """
-  # Ensure target time is a datetime object
-  if isinstance(time, str):
-    try:
-      time = datetime.fromisoformat(time.replace("Z", "+00:00"))
-    except ValueError:
-      time = datetime.now(timezone.utc)
 
-  def parse_dt(val):
-    if isinstance(val, datetime):
-      return val
-    if isinstance(val, str):
-      try:
-        return datetime.fromisoformat(val.replace("Z", "+00:00"))
-      except ValueError:
-        pass
-    return time
+EARTH_RADIUS = 6371000.0
+MAX_BOAT_SPEED = 5.0 * 0.514444  # 5 knots in m/s
 
-  # ==========================================
-  # 1. SIMULATE MAIN BOAT
-  # ==========================================
-  lat = boat_data.get("latitude", 50.97)
-  lon = boat_data.get("longitude", 1.87)
-  heading_target = boat_data.get("heading_target", 0.0)
-  tack = boat_data.get("tack", "stopped")
-  last_update = parse_dt(boat_data.get("last_update_time", time))
 
-  elapsed_seconds = (time - last_update).total_seconds()
-  if elapsed_seconds > 0:
-    elapsed_hours = elapsed_seconds / 3600.0
-
-    # Environmental fields from BoatData
-    wind_speed_ms = boat_data.get("wind_speed", 0.0)
-    wind_dir = boat_data.get("wind_direction", 0.0)
-    min_wind_angle = boat_data.get("min_wind_angle", 50.0)
-    max_wind_angle = boat_data.get("max_wind_angle", 180.0)
-
-    current_speed_ms = boat_data.get("speed", 0.0)
-    current_dir = boat_data.get("heading", 0.0)
-
-    # Convert speeds from m/s to knots for sailing calculations
-    # (1 m/s = 1.94384 knots)
-    wind_speed_knots = wind_speed_ms * 1.94384
-    current_speed_knots = current_speed_ms * 1.94384
-
-    # Calculate ocean current vector components (knots)
-    cur_rad = math.radians(current_dir)
-    current_u = current_speed_knots * math.sin(cur_rad)
-    current_v = current_speed_knots * math.cos(cur_rad)
-
-    # Check if boat is at anchorage (tack stopped)
-    if str(tack).lower() == "stopped":
-      boat_speed_knots = 0.0
-      actual_heading = boat_data.get("heading", heading_target)
+def _to_utc(value):
+    """Convert a datetime or ISO timestamp to timezone-aware UTC."""
+    if isinstance(value, datetime):
+        dt = value
     else:
-      # Calculate angle difference between target heading and wind direction
-      angle_diff = abs(heading_target - wind_dir) % 360
-      if angle_diff > 180:
-        angle_diff = 360 - angle_diff
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
 
-      # Apply tack & wind angle constraints
-      if angle_diff < min_wind_angle or angle_diff > max_wind_angle:
-        if str(tack).lower() == "port":
-          actual_heading = (wind_dir - min_wind_angle) % 360
-        else:  # starboard
-          actual_heading = (wind_dir + min_wind_angle) % 360
-      else:
-        actual_heading = heading_target
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
 
-      # Verify final wind angle relative to boat heading
-      final_wind_angle = abs(actual_heading - wind_dir) % 360
-      if final_wind_angle > 180:
-        final_wind_angle = 360 - final_wind_angle
+    return dt.astimezone(timezone.utc)
 
-      if final_wind_angle <= min_wind_angle:
-        boat_speed_knots = 0.0
-      else:
-        # Speed through water: half of wind speed, maximum of 5 knots
-        boat_speed_knots = min(wind_speed_knots / 2.0, 5.0)
 
-    # Combine boat sailing vector with ocean current vector
-    heading_rad = math.radians(actual_heading)
-    boat_u = boat_speed_knots * math.sin(heading_rad)
-    boat_v = boat_speed_knots * math.cos(heading_rad)
+def _normalize_angle(angle):
+    """Normalize heading to [0, 360)."""
+    return angle % 360.0
 
-    total_u = boat_u + current_u
-    total_v = boat_v + current_v
 
-    # Speed Over Ground (SOG in knots) and Course Over Ground (COG / true_heading in degrees)
-    sog_knots = math.sqrt(total_u**2 + total_v**2)
-    cog_degrees = math.degrees(math.atan2(total_u, total_v)) % 360
+def _signed_angle(angle):
+    """Normalize an angle to [-180, 180)."""
+    return (angle + 180.0) % 360.0 - 180.0
 
-    # Convert speed back to m/s for database 'speed' field (speed in m/s relative to ground)
-    sog_ms = sog_knots / 1.94384
 
-    if sog_knots > 0:
-      distance_nm = sog_knots * elapsed_hours
-      cog_rad = math.radians(cog_degrees)
-      delta_lat = (distance_nm * math.cos(cog_rad)) / 60.0
-      delta_lon = (distance_nm * math.sin(cog_rad)) / (
-          60.0 * math.cos(math.radians(lat))
-      )
-      lat += delta_lat
-      lon += delta_lon
+def _move_position(latitude, longitude, east_velocity,
+                   north_velocity, duration):
+    """
+    Move a GPS position using east/north velocity components.
 
-    # Update boat_data fields matching your database structure
-    boat_data["latitude"] = lat
-    boat_data["longitude"] = lon
-    boat_data["heading"] = actual_heading
-    boat_data["true_heading"] = cog_degrees
-    boat_data["speed"] = sog_ms
-    boat_data["last_update_time"] = time.isoformat()
+    Velocity in m/s, duration in seconds.
+    Returns (new_latitude, new_longitude).
+    """
+    east_distance = east_velocity * duration
+    north_distance = north_velocity * duration
 
-  # ==========================================
-  # 2. SIMULATE AIS BOATS (Dictionary of Lists)
-  # ==========================================
-  if AIS_data and isinstance(AIS_data, dict):
-    lat_list = AIS_data.get("latitude") or AIS_data.get("lat")
-    lon_list = AIS_data.get("longitude") or AIS_data.get("lon")
+    distance = math.hypot(east_distance, north_distance)
 
-    if lat_list and lon_list and isinstance(lat_list, list):
-      heading_list = (
-          AIS_data.get("Heading")
-          or AIS_data.get("heading")
-          or [0.0] * len(lat_list)
-      )
-      speed_list = (
-          AIS_data.get("Speed")
-          or AIS_data.get("speed")
-          or [3.0] * len(lat_list)
-      )
-      ais_update_times = AIS_data.get(
-          "UpdateTime", [last_update] * len(lat_list)
-      )
+    if distance == 0:
+        return latitude, longitude
 
-      new_lat_list = []
-      new_lon_list = []
+    bearing = math.atan2(east_distance, north_distance)
+    angular_distance = distance / EARTH_RADIUS
 
-      for i in range(len(lat_list)):
-        a_lat = lat_list[i]
-        a_lon = lon_list[i]
-        a_head = (
-            heading_list[i]
-            if i < len(heading_list) and heading_list[i] is not None
-            else 0.0
+    lat1 = math.radians(latitude)
+    lon1 = math.radians(longitude)
+
+    lat2 = math.asin(
+        math.sin(lat1) * math.cos(angular_distance)
+        + math.cos(lat1) * math.sin(angular_distance)
+        * math.cos(bearing)
+    )
+
+    lon2 = lon1 + math.atan2(
+        math.sin(bearing) * math.sin(angular_distance)
+        * math.cos(lat1),
+        math.cos(angular_distance)
+        - math.sin(lat1) * math.sin(lat2)
+    )
+
+    new_latitude = math.degrees(lat2)
+    new_longitude = (math.degrees(lon2) + 180) % 360 - 180
+
+    return new_latitude, new_longitude
+
+
+def _heading_to_vector(speed, heading):
+    """Convert speed and heading into east/north velocity."""
+    angle = math.radians(heading)
+
+    east = speed * math.sin(angle)
+    north = speed * math.cos(angle)
+
+    return east, north
+
+
+def _vector_to_heading(east, north):
+    """Convert east/north velocity into heading."""
+    if math.hypot(east, north) < 1e-9:
+        return 0.0
+
+    return _normalize_angle(math.degrees(math.atan2(east, north)))
+
+
+def _get_sailing_heading(boat_data):
+    """
+    Find the heading closest to heading_target,
+    constrained by tack and true wind angle.
+    """
+    target = _normalize_angle(
+        float(boat_data.get("heading_target", boat_data.get("heading", 0)))
+    )
+
+    tack = str(boat_data.get("tack", "stopped")).lower()
+
+    if tack == "stopped":
+        return _normalize_angle(float(boat_data.get("heading", 0)))
+
+    wind_direction = float(boat_data.get("wind_direction", 0))
+
+    min_angle = float(boat_data.get("min_wind_angle", 50))
+    max_angle = float(boat_data.get("max_wind_angle", 180))
+
+    # Avoid invalid wind-angle limits.
+    min_angle = max(0.0, min(180.0, min_angle))
+    max_angle = max(0.0, min(180.0, max_angle))
+
+    if min_angle > max_angle:
+        min_angle, max_angle = max_angle, min_angle
+
+    # Signed angle between wind direction and target heading.
+    relative_target = _signed_angle(target - wind_direction)
+
+    if tack == "port":
+        # Port tack: wind comes from the port side.
+        relative_heading = min(max(relative_target, min_angle), max_angle)
+
+    elif tack == "starboard":
+        # Starboard tack: wind comes from the starboard side.
+        relative_heading = min(max(relative_target, -max_angle), -min_angle)
+
+    else:
+        # Unknown tack: keep the boat stopped.
+        return _normalize_angle(float(boat_data.get("heading", 0)))
+
+    return _normalize_angle(wind_direction + relative_heading)
+
+
+def _get_ais_key(AIS_data, *names):
+    """Find an AIS field, accepting lowercase and specification names."""
+    for name in names:
+        if name in AIS_data:
+            return name
+    return None
+
+
+def SimulateMovement(time, boat_data, AIS_data):
+    """
+    Simulate the movement of the user's boat and surrounding AIS vessels.
+    Parameters
+    ----------
+    time : datetime or ISO timestamp
+        Time at which the simulation must finish.
+    boat_data : dict
+        User boat data from Firestore.
+    AIS_data : dict of lists
+        AIS vessel data, with parallel lists:
+        latitude, longitude, speed, heading,
+        update_time, length, name.
+    Returns
+    -------
+    boat_data, AIS_data
+        Both dictionaries are updated in place.
+    """
+    simulation_time = _to_utc(time)
+    target_time_str = simulation_time.isoformat()
+
+    # ---------------------------------------------------------
+    # 1. Simulate user's boat
+    # ---------------------------------------------------------
+
+    last_update = _to_utc(boat_data["last_update_time"])
+
+    duration = (simulation_time - last_update).total_seconds()
+
+    if duration > 0:
+
+        latitude = float(boat_data["latitude"])
+        longitude = float(boat_data["longitude"])
+
+        # Sailing heading, constrained by wind angle and tack.
+        heading = _get_sailing_heading(boat_data)
+
+        boat_data["heading"] = heading
+
+        tack = str(boat_data.get("tack", "stopped")).lower()
+
+        # Sailing speed relative to the water.
+        if tack == "stopped":
+            sailing_speed = 0.0
+        else:
+            wind_speed = max(0.0, float(boat_data.get("wind_speed", 0)))
+
+            sailing_speed = min(
+                wind_speed / 2.0,
+                MAX_BOAT_SPEED
+            )
+
+        # Sailing velocity vector.
+        boat_east, boat_north = _heading_to_vector(
+            sailing_speed, heading
         )
-        a_speed_ms = (
-            speed_list[i]
-            if i < len(speed_list) and speed_list[i] is not None
-            else 1.5
+
+        # Current velocity vector.
+        current_speed = max(
+            0.0, float(boat_data.get("current_speed", 0))
         )
-        a_speed_knots = a_speed_ms * 1.94384
 
-        a_time = last_update
-        if isinstance(ais_update_times, list) and i < len(ais_update_times):
-          a_time = parse_dt(ais_update_times[i])
+        current_direction = float(
+            boat_data.get("current_direction", 0)
+        )
 
-        a_elapsed = (time - a_time).total_seconds()
-        if a_elapsed > 0 and a_speed_knots > 0:
-          a_hours = a_elapsed / 3600.0
-          dist_nm = a_speed_knots * a_hours
-          head_rad = math.radians(a_head)
-          d_lat = (dist_nm * math.cos(head_rad)) / 60.0
-          d_lon = (dist_nm * math.sin(head_rad)) / (
-              60.0 * math.cos(math.radians(a_lat))
-          )
-          a_lat += d_lat
-          a_lon += d_lon
+        current_east, current_north = _heading_to_vector(
+            current_speed, current_direction
+        )
 
-        new_lat_list.append(a_lat)
-        new_lon_list.append(a_lon)
+        # Ground velocity = sailing velocity + current velocity.
+        ground_east = boat_east + current_east
+        ground_north = boat_north + current_north
 
-      if "latitude" in AIS_data:
-        AIS_data["latitude"] = new_lat_list
-      elif "lat" in AIS_data:
-        AIS_data["lat"] = new_lat_list
+        ground_speed = math.hypot(ground_east, ground_north)
 
-      if "longitude" in AIS_data:
-        AIS_data["longitude"] = new_lon_list
-      elif "lon" in AIS_data:
-        AIS_data["lon"] = new_lon_list
+        true_heading = _vector_to_heading(
+            ground_east, ground_north
+        )
 
-  return boat_data, AIS_data
+        # Move the boat.
+        new_latitude, new_longitude = _move_position(
+            latitude,
+            longitude,
+            ground_east,
+            ground_north,
+            duration
+        )
+
+        # Update boat data.
+        boat_data["latitude"] = new_latitude
+        boat_data["longitude"] = new_longitude
+        boat_data["true_heading"] = true_heading
+        boat_data["speed"] = ground_speed
+
+    # Always update the simulation timestamp.
+    boat_data["last_update_time"] = target_time_str
+
+    # ---------------------------------------------------------
+    # 2. Simulate AIS vessels
+    # ---------------------------------------------------------
+
+    if not AIS_data:
+        return boat_data, AIS_data
+
+    # Support the parallel-list format used by CoperniSail.
+    lat_key = _get_ais_key(AIS_data, "latitude", "Latitude")
+    lon_key = _get_ais_key(AIS_data, "longitude", "Longitude")
+    speed_key = _get_ais_key(AIS_data, "speed", "Speed")
+    heading_key = _get_ais_key(AIS_data, "heading", "Heading")
+    time_key = _get_ais_key(AIS_data, "update_time", "UpdateTime")
+
+    required_keys = [
+        lat_key, lon_key, speed_key, heading_key, time_key
+    ]
+
+    if any(key is None for key in required_keys):
+        raise ValueError("AIS_data is missing a required field.")
+
+    vessel_count = min(
+        len(AIS_data[lat_key]),
+        len(AIS_data[lon_key]),
+        len(AIS_data[speed_key]),
+        len(AIS_data[heading_key]),
+        len(AIS_data[time_key])
+    )
+
+    for i in range(vessel_count):
+
+        if AIS_data[time_key][i] is None:
+            continue
+
+        ais_update_time = _to_utc(AIS_data[time_key][i])
+
+        ais_duration = (
+            simulation_time - ais_update_time
+        ).total_seconds()
+
+        # Do not move vessels with future timestamps.
+        if ais_duration <= 0:
+            continue
+
+        ais_latitude = float(AIS_data[lat_key][i])
+        ais_longitude = float(AIS_data[lon_key][i])
+
+        ais_speed = max(0.0, float(AIS_data[speed_key][i]))
+        ais_heading = float(AIS_data[heading_key][i])
+
+        # AIS speed and heading are assumed to be
+        # speed over ground and course over ground.
+        ais_east, ais_north = _heading_to_vector(
+            ais_speed, ais_heading
+        )
+
+        # Move vessel to simulation time.
+        new_latitude, new_longitude = _move_position(
+            ais_latitude,
+            ais_longitude,
+            ais_east,
+            ais_north,
+            ais_duration
+        )
+
+        AIS_data[lat_key][i] = new_latitude
+        AIS_data[lon_key][i] = new_longitude
+        AIS_data[time_key][i] = target_time_str
+
+    return boat_data, AIS_data
+
 
 
 BoatData = GetLastBoat()

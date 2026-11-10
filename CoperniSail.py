@@ -408,12 +408,9 @@ def CheckColision(boat_data, AIS_data):
     #"""Projects polygon vertices onto a given axis."""
     dots = [p[0] * axis[0] + p[1] * axis[1] for p in polygon]
     return min(dots), max(dots)
-    Calculates triangles for both boats using DrawBoatTriangle and checks
-    for intersection. Returns the AIS data dictionary of the collided boat,
-    or an empty list [] otherwise.
-
-    if not AIS_data:
-      return []
+    #Calculates triangles for both boats using DrawBoatTriangle and checks
+    #for intersection. Returns the AIS data dictionary of the collided boat,
+    #or an empty list [] otherwise.
         
   def triangles_intersect(tri1, tri2):
     #"""Checks if two triangles intersect using the Separating Axis Theorem (SAT)."""
@@ -450,6 +447,9 @@ def CheckColision(boat_data, AIS_data):
       length = b.get("length", 20.0)
       heading = b.get("heading") or b.get("cog") or 0.0
       return lat, lon, length, heading
+  
+  if not AIS_data:
+    return []
   my_lat, my_lon, my_len, my_head = extract_boat_info(boat_data)
   closest_boat = None
   min_dist = float("inf")

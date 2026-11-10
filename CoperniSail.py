@@ -94,6 +94,7 @@ def MakeBoat(key: str, waypoints: dict) -> dict:
         "heading": 0,
         "heading_target": 0,
         "true_heading": 0,
+        "true_speed": 0,
         "tack": "stopped",
         "min_wind_angle": 50,
         "max_wind_angle": 180,
@@ -674,15 +675,14 @@ def SimulateMovement(time, boat_data, AIS_data):
         tack = str(boat_data.get("tack", "stopped")).lower()
 
         # Sailing speed relative to the water.
-        if tack == "stopped":
-            sailing_speed = 0.0
-        else:
-            wind_speed = max(0.0, float(boat_data.get("wind_speed", 0)))
 
-            sailing_speed = min(
-                wind_speed / 2.0,
-                MAX_BOAT_SPEED
-            )
+        wind_speed = max(0.0, float(boat_data.get("wind_speed", 0)))
+
+        sailing_speed = min(
+            wind_speed / 2.0,
+            MAX_BOAT_SPEED
+        )
+        boat_data["speed"] = sailing_speed 
 
         # Sailing velocity vector.
         boat_east, boat_north = _heading_to_vector(
@@ -706,6 +706,11 @@ def SimulateMovement(time, boat_data, AIS_data):
         ground_east = boat_east + current_east
         ground_north = boat_north + current_north
 
+        if tack == "stopped":
+            sailing_speed = 0.0
+            ground_east=0.0
+            ground_north=0.0
+
         ground_speed = math.hypot(ground_east, ground_north)
 
         true_heading = _vector_to_heading(
@@ -725,7 +730,7 @@ def SimulateMovement(time, boat_data, AIS_data):
         boat_data["latitude"] = new_latitude
         boat_data["longitude"] = new_longitude
         boat_data["true_heading"] = true_heading
-        boat_data["speed"] = ground_speed
+        boat_data["true_speed"] = ground_speed
 
     # Always update the simulation timestamp.
     boat_data["last_update_time"] = target_time_str
@@ -738,33 +743,33 @@ def SimulateMovement(time, boat_data, AIS_data):
         return boat_data, AIS_data
 
     # Support the parallel-list format used by CoperniSail.
-    lat_key = _get_ais_key(AIS_data, "latitude", "Latitude")
-    lon_key = _get_ais_key(AIS_data, "longitude", "Longitude")
-    speed_key = _get_ais_key(AIS_data, "speed", "Speed")
-    heading_key = _get_ais_key(AIS_data, "heading", "Heading")
-    time_key = _get_ais_key(AIS_data, "update_time", "UpdateTime")
+    "latitude" = "latitude"
+    "longitude" = _get_ais_key(AIS_data, "longitude", "Longitude")
+    "speed" = _get_ais_key(AIS_data, "speed", "Speed")
+    "heading" = _get_ais_key(AIS_data, "heading", "Heading")
+    "update_time" = _get_ais_key(AIS_data, "update_time", "UpdateTime")
 
     required_keys = [
-        lat_key, lon_key, speed_key, heading_key, time_key
+        "latitude", "longitude", "speed", "heading", "update_time"
     ]
 
     if any(key is None for key in required_keys):
         raise ValueError("AIS_data is missing a required field.")
 
     vessel_count = min(
-        len(AIS_data[lat_key]),
-        len(AIS_data[lon_key]),
-        len(AIS_data[speed_key]),
-        len(AIS_data[heading_key]),
-        len(AIS_data[time_key])
+        len(AIS_data["latitude""latitude"]),
+        len(AIS_data["longitude"]),
+        len(AIS_data["speed"]),
+        len(AIS_data["heading"]),
+        len(AIS_data["update_time"])
     )
 
     for i in range(vessel_count):
 
-        if AIS_data[time_key][i] is None:
+        if AIS_data["update_time"][i] is None:
             continue
 
-        ais_update_time = _to_utc(AIS_data[time_key][i])
+        ais_update_time = _to_utc(AIS_data["update_time"][i])
 
         ais_duration = (
             simulation_time - ais_update_time
@@ -774,11 +779,11 @@ def SimulateMovement(time, boat_data, AIS_data):
         if ais_duration <= 0:
             continue
 
-        ais_latitude = float(AIS_data[lat_key][i])
-        ais_longitude = float(AIS_data[lon_key][i])
+        ais_latitude = float(AIS_data["latitude"][i])
+        ais_longitude = float(AIS_data["longitude"][i])
 
-        ais_speed = max(0.0, float(AIS_data[speed_key][i]))
-        ais_heading = float(AIS_data[heading_key][i])
+        ais_speed = max(0.0, float(AIS_data["speed"][i]))
+        ais_heading = float(AIS_data["heading"][i])
 
         # AIS speed and heading are assumed to be
         # speed over ground and course over ground.
@@ -795,9 +800,9 @@ def SimulateMovement(time, boat_data, AIS_data):
             ais_duration
         )
 
-        AIS_data[lat_key][i] = new_latitude
-        AIS_data[lon_key][i] = new_longitude
-        AIS_data[time_key][i] = target_time_str
+        AIS_data["latitude"][i] = new_latitude
+        AIS_data["longitude"][i] = new_longitude
+        AIS_data["update_time"][i] = target_time_str
 
     return boat_data, AIS_data
 

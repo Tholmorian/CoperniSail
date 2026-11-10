@@ -348,12 +348,12 @@ def CheckAground(latitude, longitude):
   return GetLandmask().contains(float(longitude), float(latitude))
 
 def DrawBoatTriangle(latitude, longitude, length, heading):
-  """Calculates the 3 vertices of a triangle centered at the boat's position,
-  scaled to the given length with a width of 1/4 of the length,
-  and oriented according to the heading (in degrees).
-  Returns a dictionary with keys 'latitude' and 'longitude',
-  each containing a list of 3 values [bow, port, starboard].
-  """
+  #"""Calculates the 3 vertices of a triangle centered at the boat's position,
+  #scaled to the given length with a width of 1/4 of the length,
+  #and oriented according to the heading (in degrees).
+  #Returns a dictionary with keys 'latitude' and 'longitude',
+  #each containing a list of 3 values [bow, port, starboard].
+  #"""
   if not length or length <= 0:
     length = 20.0  # Default fallback length in meters
   # Width is 1/4 of the boat length as requested
@@ -403,9 +403,9 @@ import math
 
 
 def CheckColision(boat_data, AIS_data):
-  """Verifies collision between the current boat and the closest boat in AIS_data."""
+  #"""Verifies collision between the current boat and the closest boat in AIS_data."""
   def project_polygon(axis, polygon):
-    """Projects polygon vertices onto a given axis."""
+    #"""Projects polygon vertices onto a given axis."""
     dots = [p[0] * axis[0] + p[1] * axis[1] for p in polygon]
     return min(dots), max(dots)
     Calculates triangles for both boats using DrawBoatTriangle and checks
@@ -416,7 +416,7 @@ def CheckColision(boat_data, AIS_data):
       return []
         
   def triangles_intersect(tri1, tri2):
-    """Checks if two triangles intersect using the Separating Axis Theorem (SAT)."""
+    #"""Checks if two triangles intersect using the Separating Axis Theorem (SAT)."""
     polygons = [tri1, tri2]
     for poly in polygons:
       for i in range(len(poly)):

@@ -511,6 +511,8 @@ def CheckColision(boat_data, AIS_data):
 #boat_data=MakeBoat(key,waypoint)
 #SaveBoat(boat_data)
 BoatData = GetLastBoat()
+BoatData["latitude"]=50.97023333333333
+BoatData["longitude"]=1.8684183333333333
 st.write(BoatData)
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 st.write(AisData)

@@ -403,76 +403,107 @@ import math
 
 
 def CheckColision(boat_data, AIS_data):
-  #"""Verifies collision between the current boat and the closest boat in AIS_data."""
-  def project_polygon(axis, polygon):
-    #"""Projects polygon vertices onto a given axis."""
-    dots = [p[0] * axis[0] + p[1] * axis[1] for p in polygon]
-    return min(dots), max(dots)
-    #Calculates triangles for both boats using DrawBoatTriangle and checks
-    #for intersection. Returns the AIS data dictionary of the collided boat,
-    #or an empty list [] otherwise.
-        
-  def triangles_intersect(tri1, tri2):
-    #"""Checks if two triangles intersect using the Separating Axis Theorem (SAT)."""
-    polygons = [tri1, tri2]
-    for poly in polygons:
-      for i in range(len(poly)):
-        p1 = poly[i]
-        p2 = poly[(i + 1) % len(poly)]
-        # Edge vector and its perpendicular normal axis
-        edge = (p2[0] - p1[0], p2[1] - p1[1])
-        axis = (-edge[1], edge[0])
-        # Project both triangles onto the axis
-        min1, max1 = project_polygon(axis, tri1)
-        min2, max2 = project_polygon(axis, tri2)
-        # If there is a gap on any axis, they do not intersect
-        if max1 < min2 or max2 < min1:
-          return False
-    return True
-    
-  # Helper function to extract position, length, and heading from boat structures
-  # (Supports both standard dictionaries and GeoJSON feature dictionaries)
+  """Verifies collision between the current boat and the closest boat in AIS_data.
+
+  AIS_data is a dictionary of lists (e.g., 'latitude', 'longitude', 'Length',
+  'Heading', 'Name', etc.).
+  """
+  if not AIS_data or not isinstance(AIS_data, dict):
+    return []
+
+  # Helper function to find and retrieve list data across potential key naming variations
+  def get_list(d, keys):
+    for k in keys:
+      if k in d and isinstance(d[k], list):
+        return d[k]
+    return []
+
+  # Extract latitude and longitude lists from AIS_data dictionary
+  lat_list = get_list(AIS_data, ["latitude", "lat", "Latitude"])
+  lon_list = get_list(AIS_data, ["longitude", "lon", "Longitude"])
+
+  if not lat_list or not lon_list or len(lat_list) == 0:
+    return []
+
+  # Extract current boat info
   def extract_boat_info(b):
-    if isinstance(b, dict) and "properties" in b and "geometry" in b:
-      props = b.get("properties", {})
-      coords = b.get("geometry", {}).get("coordinates", [0, 0])
-      lat = coords[1] if len(coords) > 1 else props.get("latitude", 0)
-      lon = coords[0] if len(coords) > 0 else props.get("longitude", 0)
-      length = props.get("length", 20.0)
-      heading = props.get("cog") or props.get("heading") or 0.0
-      return lat, lon, length, heading
-    else:
+    if isinstance(b, dict):
       lat = b.get("latitude") or b.get("lat", 0)
       lon = b.get("longitude") or b.get("lon", 0)
-      length = b.get("length", 20.0)
-      heading = b.get("heading") or b.get("cog") or 0.0
+      length = b.get("length") or b.get("Length", 20.0)
+      heading = b.get("heading") or b.get("Heading", 0.0)
       return lat, lon, length, heading
-  
-  if not AIS_data:
-    return []
+    return 0, 0, 20.0, 0.0
+
   my_lat, my_lon, my_len, my_head = extract_boat_info(boat_data)
-  closest_boat = None
+
+  closest_index = -1
   min_dist = float("inf")
-  # 1. Find the closest boat in AIS_data
-  for vessel in AIS_data:
-    v_lat, v_lon, _, _ = extract_boat_info(vessel)
-    # Approximate Euclidean distance in degrees for proximity check
+  num_boats = len(lat_list)
+
+  # 1. Find the index of the closest boat in AIS_data lists
+  for i in range(num_boats):
+    v_lat = lat_list[i]
+    v_lon = lon_list[i]
+    # Approximate Euclidean distance in degrees
     dist = (v_lat - my_lat) ** 2 + (v_lon - my_lon) ** 2
     if dist < min_dist:
       min_dist = dist
-      closest_boat = vessel
-  if not closest_boat:
+      closest_index = i
+
+  if closest_index == -1:
     return []
+
+  # Construct a single dictionary representing the closest boat
+  closest_boat = {}
+  for k, v in AIS_data.items():
+    if isinstance(v, list) and len(v) > closest_index:
+      closest_boat[k] = v[closest_index]
+    else:
+      closest_boat[k] = v
+
+  # Extract closest boat parameters for triangle calculation
+  ais_lat = lat_list[closest_index]
+  ais_lon = lon_list[closest_index]
+
+  length_col = get_list(AIS_data, ["Length", "length"])
+  ais_len = length_col[closest_index] if len(length_col) > closest_index else 20.0
+
+  heading_col = get_list(AIS_data, ["Heading", "heading", "cog"])
+  ais_head = (
+      heading_col[closest_index] if len(heading_col) > closest_index else 0.0
+  )
+
   # 2. Calculate triangles for both boats using DrawBoatTriangle
   my_triangle = DrawBoatTriangle(my_lat, my_lon, my_len, my_head)
-  ais_lat, ais_lon, ais_len, ais_head = extract_boat_info(closest_boat)
   ais_triangle = DrawBoatTriangle(ais_lat, ais_lon, ais_len, ais_head)
-  # Convert dictionaries to list of (lat, lon) coordinate tuples
+
+  # Convert dictionaries to list of coordinate tuples
   my_pts = list(zip(my_triangle["latitude"], my_triangle["longitude"]))
   ais_pts = list(zip(ais_triangle["latitude"], ais_triangle["longitude"]))
-  # 3. Check for collision/interference between the two triangles
+
+  # 3. Check for collision using Separating Axis Theorem (SAT)
+  def project_polygon(axis, polygon):
+    dots = [p[0] * axis[0] + p[1] * axis[1] for p in polygon]
+    return min(dots), max(dots)
+
+  def triangles_intersect(tri1, tri2):
+    polygons = [tri1, tri2]
+    for poly in polygons:
+      for j in range(len(poly)):
+        p1 = poly[j]
+        p2 = poly[(j + 1) % len(poly)]
+        edge = (p2[0] - p1[0], p2[1] - p1[1])
+        axis = (-edge[1], edge[0])
+        min1, max1 = project_polygon(axis, tri1)
+        min2, max2 = project_polygon(axis, tri2)
+        if max1 < min2 or max2 < min1:
+          return False
+    return True
+
   if triangles_intersect(my_pts, ais_pts):
     return closest_boat
+
   return []
 
 #key=GenerateKey()

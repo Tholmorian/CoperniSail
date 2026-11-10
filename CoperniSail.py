@@ -483,6 +483,6 @@ BoatData = GetLastBoat()
 st.write(BoatData)
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 st.write(AisData)
-colision=CheckColision(boat_data, AIS_data)
+colision=CheckColision(BoatData, AisData)
 st.write(colision)
 

@@ -900,7 +900,17 @@ def DrawInterface(boat_data, AIS_data):
     # 2. Interface layout
     # ---------------------------------------------------------
 
-    map_col, control_col = st.columns([4, 1])
+    # Boat key gets the full page width
+    st.text_input(
+        "Boat key",
+        value=boat_data.get("boat_key", ""),
+        type="password",
+        key="boat_key",
+        help="Enter your boat identification key"
+    )
+
+    # Wider control panel
+    map_col, control_col = st.columns([3, 2], gap="medium")
 
     # =========================================================
     # 3. MAP
@@ -1107,12 +1117,21 @@ def DrawInterface(boat_data, AIS_data):
 
         st.subheader("Boat controls")
 
-        st.text_input(
-            "Boat key",
-            value=boat_data.get("boat_key", ""),
-            type="password",
-            key="boat_key"
-        )
+        st.subheader("Navigation")
+
+        nav_col1, nav_col2 = st.columns(2)
+
+        with nav_col1:
+            st.metric(
+                "True heading",
+                f"{heading:.1f}°"
+            )
+
+        with nav_col2:
+            st.metric(
+                "True speed",
+                f"{speed_knots:.2f} kn"
+            )
 
         st.text_input(
             "Boat name",

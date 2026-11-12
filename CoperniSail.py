@@ -1215,4 +1215,4 @@ BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatD
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
 
-DrawInterface(boat_data, AIS_data)
+DrawInterface(BoatData, AisData)

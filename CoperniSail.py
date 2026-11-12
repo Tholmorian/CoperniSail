@@ -14,6 +14,9 @@ import math
 from datetime import datetime, timedelta, timezone
 import json
 from roaring_landmask import RoaringLandmask
+import html
+import folium
+from streamlit_folium import st_folium
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -863,6 +866,338 @@ def CheckWaypoint(latitude, longitude, waypoints):
     return 0
 
 
+def DrawInterface(boat_data, AIS_data):
+    """
+    Draw the CoperniSail user interface.
+
+    Parameters
+    ----------
+    boat_data : dict
+        Current boat data.
+
+    AIS_data : dict
+        AIS vessel data containing lists:
+        latitude, longitude, speed, heading,
+        length, name and update_time.
+    """
+
+    # ---------------------------------------------------------
+    # 1. Boat data
+    # ---------------------------------------------------------
+
+    latitude = float(boat_data["latitude"])
+    longitude = float(boat_data["longitude"])
+
+    heading = float(boat_data.get("true_heading", 0))
+    speed = float(boat_data.get("true_speed", 0))
+
+    speed_knots = speed * 1.943844
+
+    boat_name = boat_data.get("boat_name", "My boat")
+    boat_length = float(boat_data.get("length", 4.5))
+
+    # ---------------------------------------------------------
+    # 2. Interface layout
+    # ---------------------------------------------------------
+
+    map_col, control_col = st.columns([4, 1])
+
+    # =========================================================
+    # 3. MAP
+    # =========================================================
+
+    with map_col:
+
+        m = folium.Map(
+            location=[latitude, longitude],
+            zoom_start=11,
+            control_scale=True,
+            tiles=None
+        )
+
+        # Satellite background
+        folium.TileLayer(
+            tiles=(
+                "https://server.arcgisonline.com/ArcGIS/"
+                "rest/services/World_Imagery/MapServer/tile/"
+                "{z}/{y}/{x}"
+            ),
+            attr="Tiles © Esri",
+            name="Satellite"
+        ).add_to(m)
+
+        # -----------------------------------------------------
+        # 5 NM circle
+        # -----------------------------------------------------
+
+        radius = 5 * 1852
+
+        folium.Circle(
+            location=[latitude, longitude],
+            radius=radius,
+            color="blue",
+            weight=1,
+            fill=False,
+            tooltip="5 NM"
+        ).add_to(m)
+
+        # -----------------------------------------------------
+        # Radial lines every 10 degrees
+        # -----------------------------------------------------
+
+        def DestinationPoint(lat, lon, bearing, distance):
+            R = 6371000
+
+            lat1 = math.radians(lat)
+            lon1 = math.radians(lon)
+            brng = math.radians(bearing)
+
+            d = distance / R
+
+            lat2 = math.asin(
+                math.sin(lat1) * math.cos(d)
+                + math.cos(lat1) * math.sin(d)
+                * math.cos(brng)
+            )
+
+            lon2 = lon1 + math.atan2(
+                math.sin(brng) * math.sin(d)
+                * math.cos(lat1),
+                math.cos(d)
+                - math.sin(lat1) * math.sin(lat2)
+            )
+
+            return [
+                math.degrees(lat2),
+                math.degrees(lon2)
+            ]
+
+        for angle in range(0, 360, 10):
+
+            end_point = DestinationPoint(
+                latitude,
+                longitude,
+                angle,
+                radius
+            )
+
+            folium.PolyLine(
+                locations=[
+                    [latitude, longitude],
+                    end_point
+                ],
+                color="blue",
+                weight=1,
+                opacity=0.4
+            ).add_to(m)
+
+        # =====================================================
+        # 4. USER BOAT
+        # =====================================================
+
+        triangle = DrawBoatTriangle(
+            latitude,
+            longitude,
+            boat_length,
+            heading
+        )
+
+        coordinates = list(zip(
+            triangle["latitude"],
+            triangle["longitude"]
+        ))
+
+        folium.Polygon(
+            locations=coordinates,
+            color="red",
+            weight=2,
+            fill=True,
+            fill_color="red",
+            fill_opacity=1,
+            tooltip=boat_name
+        ).add_to(m)
+
+        # =====================================================
+        # 5. AIS VESSELS
+        # =====================================================
+
+        def GetAISValue(key, index, default=None):
+
+            values = AIS_data.get(
+                key,
+                AIS_data.get(key.lower(), [])
+            )
+
+            if isinstance(values, list) and index < len(values):
+                return values[index]
+
+            return default
+
+        if isinstance(AIS_data, dict):
+
+            ais_latitudes = AIS_data.get(
+                "latitude",
+                AIS_data.get("Latitude", [])
+            )
+
+            for i in range(len(ais_latitudes)):
+
+                ais_lat = GetAISValue("latitude", i)
+                ais_lon = GetAISValue("longitude", i)
+
+                if ais_lat is None or ais_lon is None:
+                    continue
+
+                ais_name = GetAISValue("name", i, "Unknown")
+                ais_length = float(
+                    GetAISValue("length", i, 10)
+                )
+                ais_speed = float(
+                    GetAISValue("speed", i, 0)
+                )
+                ais_heading = float(
+                    GetAISValue("heading", i, 0)
+                )
+
+                triangle = DrawBoatTriangle(
+                    float(ais_lat),
+                    float(ais_lon),
+                    ais_length,
+                    ais_heading
+                )
+
+                coordinates = list(zip(
+                    triangle["latitude"],
+                    triangle["longitude"]
+                ))
+
+                tooltip = (
+                    f"Name: {html.escape(str(ais_name))}<br>"
+                    f"Length: {ais_length:.1f} m<br>"
+                    f"Speed: {ais_speed * 1.943844:.1f} knots"
+                )
+
+                folium.Polygon(
+                    locations=coordinates,
+                    color="orange",
+                    weight=1,
+                    fill=True,
+                    fill_color="orange",
+                    fill_opacity=0.8,
+                    tooltip=folium.Tooltip(tooltip)
+                ).add_to(m)
+
+        # =====================================================
+        # 6. DISPLAY MAP
+        # =====================================================
+
+        st_folium(
+            m,
+            width=None,
+            height=700,
+            key="copernisail_map",
+            returned_objects=[]
+        )
+
+    # =========================================================
+    # 7. USER CONTROLS
+    # =========================================================
+
+    with control_col:
+
+        st.subheader("Boat controls")
+
+        st.text_input(
+            "Boat key",
+            value=boat_data.get("boat_key", ""),
+            type="password",
+            key="boat_key"
+        )
+
+        st.text_input(
+            "Boat name",
+            value=boat_data.get("boat_name", "x"),
+            key="boat_name"
+        )
+
+        st.text_input(
+            "Skipper name",
+            value=boat_data.get("skipper_name", "x"),
+            key="skipper_name"
+        )
+
+        st.divider()
+
+        st.number_input(
+            "Heading (°)",
+            min_value=0.0,
+            max_value=359.0,
+            value=float(boat_data.get("heading_target", 0)),
+            step=1.0,
+            key="heading_target"
+        )
+
+        tack = boat_data.get("tack", "port")
+
+        if tack not in ["port", "starboard"]:
+            tack = "port"
+
+        st.selectbox(
+            "Tack",
+            options=["port", "starboard"],
+            index=["port", "starboard"].index(tack),
+            key="tack"
+        )
+
+        st.divider()
+
+        # =====================================================
+        # 8. NAVIGATION INFORMATION
+        # =====================================================
+
+        st.subheader("Navigation")
+
+        st.metric(
+            "True heading",
+            f"{heading:.1f}°"
+        )
+
+        st.metric(
+            "True speed",
+            f"{speed_knots:.2f} knots"
+        )
+
+        # =====================================================
+        # 9. LAST IMPORTANT EVENT
+        # =====================================================
+
+        st.divider()
+
+        st.subheader("Information")
+
+        st.info(
+            boat_data.get(
+                "information",
+                "Welcome on board"
+            )
+        )
+
+        # =====================================================
+        # 10. WINDY LINK
+        # =====================================================
+
+        windy_url = (
+            f"https://www.windy.com/{latitude}/{longitude}"
+            f"?{latitude},{longitude},11"
+        )
+
+        st.link_button(
+            "Windy forecast",
+            windy_url,
+            use_container_width=True
+        )
+
+
 BoatData = GetLastBoat()
 
 newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
@@ -879,7 +1214,5 @@ AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-st.write(waypoints)
-st.write(BoatData["latitude"])
-st.write(BoatData["longitude"])
-st.write(waypoint)
+
+DrawInterface(boat_data, AIS_data)

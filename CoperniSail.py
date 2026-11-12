@@ -801,11 +801,75 @@ def SimulateMovement(time, boat_data, AIS_data):
     return boat_data, AIS_data
 
 
+import math
+
+def CheckWaypoint(latitude, longitude, waypoints):
+    """
+    Check if the boat is inside a waypoint passage zone.
+
+    Parameters
+    ----------
+    latitude : float
+        Boat latitude in decimal degrees.
+    longitude : float
+        Boat longitude in decimal degrees.
+
+    waypoints : dict
+        Dictionary containing:
+        - number: list of waypoint numbers
+        - latitude: list of waypoint latitudes
+        - longitude: list of waypoint longitudes
+        - radius: list of waypoint radii in nautical miles
+
+    Returns
+    -------
+    int
+        Waypoint number if inside a passage zone.
+        0 if no waypoint is reached.
+    """
+
+    EARTH_RADIUS_NM = 3440.065
+
+    for i in range(len(waypoints["number"])):
+
+        wp_lat = waypoints["latitude"][i]
+        wp_lon = waypoints["longitude"][i]
+        radius = waypoints["radius"][i]
+
+        # Convert coordinates to radians
+        lat1 = math.radians(latitude)
+        lon1 = math.radians(longitude)
+        lat2 = math.radians(wp_lat)
+        lon2 = math.radians(wp_lon)
+
+        # Haversine distance
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+
+        a = (
+            math.sin(dlat / 2)**2
+            + math.cos(lat1) * math.cos(lat2)
+            * math.sin(dlon / 2)**2
+        )
+
+        c = 2 * math.atan2(
+            math.sqrt(a),
+            math.sqrt(1 - a)
+        )
+
+        distance = EARTH_RADIUS_NM * c
+
+        # Check if boat is inside waypoint radius
+        if distance <= radius:
+            return waypoints["number"][i]
+
+    return 0
+
+
 BoatData = GetLastBoat()
-st.write(BoatData)
 
 newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
-
+waypoints=GetWaypoint()
 
 BoatData["tack"]="port"
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
@@ -815,9 +879,7 @@ current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longit
 BoatData["current_speed"]=current_speed
 BoatData["current_direction"]=current_direction
 AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-st.write(AisData)
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
-st.write(AisData)
 colision=CheckColision(BoatData, AisData)
-
-
+waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
+st.write(waypoint)

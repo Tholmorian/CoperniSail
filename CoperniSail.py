@@ -250,7 +250,6 @@ def GetCurrent(latitude,longitude):
           username=st.secrets["CopernicusMarine"]["username"],
           password=st.secrets["CopernicusMarine"]["password"],
       )
-      st.write("Copernicus login done")
     except Exception as e:
       st.error(f"Copernicus login failed: {e}")
   try:
@@ -312,7 +311,6 @@ def GetAisData(latitude,longitude):
     resp = requests.get(ais_url)
     resp.raise_for_status()
     geo_data = resp.json()
-    st.write(geo_data)
   except Exception:
     st.warning("Could not load AIS data")
   if geo_data and "features" in geo_data:
@@ -614,7 +612,6 @@ def SimulateMovement(time, boat_data, AIS_data):
         if tack == "stopped":
             return _normalize_angle(float(boat_data.get("heading", 0)))
         
-        st.write(boat_data.get("wind_direction"))
         wind_direction = float(boat_data.get("wind_direction", 0))
 
         min_angle = float(boat_data.get("min_wind_angle", 50))
@@ -882,4 +879,7 @@ AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
+st.write(waypoints)
+st.write(BoatData["latitude"])
+st.write(BoatData["longitude"])
 st.write(waypoint)

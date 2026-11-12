@@ -1017,6 +1017,7 @@ def DrawInterface(boat_data, AIS_data):
             tooltip=boat_name
         ).add_to(m)
 
+
         # =====================================================
         # 5. AIS VESSELS
         # =====================================================
@@ -1029,7 +1030,10 @@ def DrawInterface(boat_data, AIS_data):
             )
 
             if isinstance(values, list) and index < len(values):
-                return values[index]
+                value = values[index]
+
+                if value is not None:
+                    return value
 
             return default
 
@@ -1045,19 +1049,15 @@ def DrawInterface(boat_data, AIS_data):
                 ais_lat = GetAISValue("latitude", i)
                 ais_lon = GetAISValue("longitude", i)
 
+                # Position is mandatory
                 if ais_lat is None or ais_lon is None:
                     continue
 
+                # Optional AIS information
                 ais_name = GetAISValue("name", i, "Unknown")
-                ais_length = float(
-                    GetAISValue("length", i, 10)
-                )
-                ais_speed = float(
-                    GetAISValue("speed", i, 0)
-                )
-                ais_heading = float(
-                    GetAISValue("heading", i, 0)
-                )
+                ais_length = float(GetAISValue("length", i, 10))
+                ais_speed = float(GetAISValue("speed", i, 0))
+                ais_heading = float(GetAISValue("heading", i, 0))
 
                 triangle = DrawBoatTriangle(
                     float(ais_lat),

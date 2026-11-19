@@ -866,23 +866,14 @@ def CheckWaypoint(latitude, longitude, waypoints):
     return 0
 
 
+
 def DrawInterface(boat_data, AIS_data):
     """
     Draw the CoperniSail user interface.
-
-    Parameters
-    ----------
-    boat_data : dict
-        Current boat data.
-
-    AIS_data : dict
-        AIS vessel data containing lists:
-        latitude, longitude, speed, heading,
-        length, name and update_time.
     """
 
     # ---------------------------------------------------------
-    # 1. Boat data
+    # 1. BOAT DATA
     # ---------------------------------------------------------
 
     latitude = float(boat_data["latitude"])
@@ -890,30 +881,122 @@ def DrawInterface(boat_data, AIS_data):
 
     heading = float(boat_data.get("true_heading", 0))
     speed = float(boat_data.get("true_speed", 0))
-
     speed_knots = speed * 1.943844
 
     boat_name = boat_data.get("boat_name", "My boat")
     boat_length = float(boat_data.get("length", 4.5))
 
     # ---------------------------------------------------------
-    # 2. Interface layout
+    # 2. INTERFACE STYLE
     # ---------------------------------------------------------
 
-    # Boat key gets the full page width
-    st.text_input(
-        "Boat key",
-        value=boat_data.get("boat_key", ""),
-        type="password",
-        key="boat_key",
-        help="Enter your boat identification key"
+    st.markdown("""
+        <style>
+        /* General spacing */
+        .block-container {
+            padding-top: 0.8rem;
+            padding-bottom: 0.5rem;
+            max-width: 100%;
+        }
+
+        div[data-testid="stVerticalBlock"] {
+            gap: 0.5rem;
+        }
+
+        /* Blue information panels */
+        .st-key-boat_key_panel,
+        .st-key-boat_name_panel,
+        .st-key-skipper_panel,
+        .st-key-heading_panel,
+        .st-key-tack_panel,
+        .st-key-true_heading_panel,
+        .st-key-speed_panel,
+        .st-key-windy_panel,
+        .st-key-information_panel {
+            background-color: #5082bb;
+            border: 2px solid #315d91;
+            border-radius: 3px;
+            padding: 5px 10px;
+            color: white;
+            text-align: center;
+        }
+
+        /* Text and labels */
+        .st-key-boat_key_panel label,
+        .st-key-boat_name_panel label,
+        .st-key-skipper_panel label,
+        .st-key-heading_panel label,
+        .st-key-tack_panel label {
+            color: white !important;
+            font-size: 15px;
+        }
+
+        /* Input fields */
+        .st-key-boat_key_panel input,
+        .st-key-boat_name_panel input,
+        .st-key-skipper_panel input,
+        .st-key-heading_panel input {
+            text-align: center;
+            font-size: 17px;
+        }
+
+        /* Metrics */
+        .st-key-true_heading_panel label,
+        .st-key-speed_panel label {
+            color: white !important;
+        }
+
+        .st-key-true_heading_panel [data-testid="stMetricValue"],
+        .st-key-speed_panel [data-testid="stMetricValue"] {
+            color: white !important;
+            font-size: 25px;
+        }
+
+        .st-key-true_heading_panel [data-testid="stMetricLabel"],
+        .st-key-speed_panel [data-testid="stMetricLabel"] {
+            font-size: 16px;
+        }
+
+        /* Information */
+        .st-key-information_panel {
+            min-height: 95px;
+        }
+
+        .st-key-information_panel p {
+            color: white !important;
+            font-size: 16px;
+        }
+
+        /* Buttons */
+        .st-key-windy_panel .stLinkButton a {
+            width: 100%;
+            justify-content: center;
+            background-color: #5082bb;
+            color: white;
+            border: none;
+            font-size: 18px;
+        }
+
+        /* Reduce vertical space */
+        .st-key-boat_key_panel [data-testid="stTextInput"],
+        .st-key-boat_name_panel [data-testid="stTextInput"],
+        .st-key-skipper_panel [data-testid="stTextInput"] {
+            margin-bottom: 0;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # ---------------------------------------------------------
+    # 3. MAIN LAYOUT
+    # ---------------------------------------------------------
+
+    map_col, control_col = st.columns(
+        [2.15, 1],
+        gap="large"
     )
 
-    # Wider control panel
-    map_col, control_col = st.columns([3, 2], gap="medium")
-
     # =========================================================
-    # 3. MAP
+    # 4. MAP
     # =========================================================
 
     with map_col:
@@ -925,7 +1008,6 @@ def DrawInterface(boat_data, AIS_data):
             tiles=None
         )
 
-        # Satellite background
         folium.TileLayer(
             tiles=(
                 "https://server.arcgisonline.com/ArcGIS/"
@@ -937,7 +1019,7 @@ def DrawInterface(boat_data, AIS_data):
         ).add_to(m)
 
         # -----------------------------------------------------
-        # 5 NM circle
+        # 5 NM CIRCLE
         # -----------------------------------------------------
 
         radius = 5 * 1852
@@ -952,10 +1034,11 @@ def DrawInterface(boat_data, AIS_data):
         ).add_to(m)
 
         # -----------------------------------------------------
-        # Radial lines every 10 degrees
+        # RADIAL LINES
         # -----------------------------------------------------
 
         def DestinationPoint(lat, lon, bearing, distance):
+
             R = 6371000
 
             lat1 = math.radians(lat)
@@ -1001,9 +1084,9 @@ def DrawInterface(boat_data, AIS_data):
                 opacity=0.4
             ).add_to(m)
 
-        # =====================================================
-        # 4. USER BOAT
-        # =====================================================
+        # -----------------------------------------------------
+        # USER BOAT
+        # -----------------------------------------------------
 
         triangle = DrawBoatTriangle(
             latitude,
@@ -1027,10 +1110,9 @@ def DrawInterface(boat_data, AIS_data):
             tooltip=boat_name
         ).add_to(m)
 
-
-        # =====================================================
-        # 5. AIS VESSELS
-        # =====================================================
+        # -----------------------------------------------------
+        # AIS VESSELS
+        # -----------------------------------------------------
 
         def GetAISValue(key, index, default=None):
 
@@ -1059,11 +1141,9 @@ def DrawInterface(boat_data, AIS_data):
                 ais_lat = GetAISValue("latitude", i)
                 ais_lon = GetAISValue("longitude", i)
 
-                # Position is mandatory
                 if ais_lat is None or ais_lon is None:
                     continue
 
-                # Optional AIS information
                 ais_name = GetAISValue("name", i, "Unknown")
                 ais_length = float(GetAISValue("length", i, 10))
                 ais_speed = float(GetAISValue("speed", i, 0))
@@ -1097,124 +1177,156 @@ def DrawInterface(boat_data, AIS_data):
                     tooltip=folium.Tooltip(tooltip)
                 ).add_to(m)
 
-        # =====================================================
-        # 6. DISPLAY MAP
-        # =====================================================
+        # -----------------------------------------------------
+        # DISPLAY MAP
+        # -----------------------------------------------------
 
         st_folium(
             m,
             width=None,
-            height=700,
+            height=680,
             key="copernisail_map",
             returned_objects=[]
         )
 
     # =========================================================
-    # 7. USER CONTROLS
+    # 5. RIGHT CONTROL PANEL
     # =========================================================
 
     with control_col:
 
-        st.subheader("Boat controls")
+        # -----------------------------------------------------
+        # BOAT KEY
+        # -----------------------------------------------------
 
-        st.subheader("Navigation")
+        with st.container(key="boat_key_panel"):
 
-        nav_col1, nav_col2 = st.columns(2)
+            st.text_input(
+                "Boat Key",
+                value=boat_data.get("boat_key", ""),
+                type="password",
+                key="boat_key",
+                label_visibility="visible"
+            )
+
+        # -----------------------------------------------------
+        # BOAT NAME
+        # -----------------------------------------------------
+
+        with st.container(key="boat_name_panel"):
+
+            st.text_input(
+                "Boat Name",
+                value=boat_name,
+                key="boat_name"
+            )
+
+        # -----------------------------------------------------
+        # SKIPPER NAME
+        # -----------------------------------------------------
+
+        with st.container(key="skipper_panel"):
+
+            st.text_input(
+                "Skipper name",
+                value=boat_data.get("skipper_name", ""),
+                key="skipper_name"
+            )
+
+        # -----------------------------------------------------
+        # TARGET HEADING AND TACK
+        # -----------------------------------------------------
+
+        nav_col1, nav_col2 = st.columns(2, gap="small")
 
         with nav_col1:
-            st.metric(
-                "True heading",
-                f"{heading:.1f}°"
-            )
+
+            with st.container(key="heading_panel"):
+
+                st.number_input(
+                    "Target heading (°)",
+                    min_value=0.0,
+                    max_value=359.0,
+                    value=float(
+                        boat_data.get("heading_target", 0)
+                    ),
+                    step=1.0,
+                    key="heading_target"
+                )
 
         with nav_col2:
-            st.metric(
-                "True speed",
-                f"{speed_knots:.2f} kn"
-            )
 
-        st.text_input(
-            "Boat name",
-            value=boat_data.get("boat_name", "x"),
-            key="boat_name"
-        )
+            with st.container(key="tack_panel"):
 
-        st.text_input(
-            "Skipper name",
-            value=boat_data.get("skipper_name", "x"),
-            key="skipper_name"
-        )
+                tack = boat_data.get("tack", "port").lower()
 
-        st.divider()
+                if tack not in ["port", "starboard"]:
+                    tack = "port"
 
-        st.number_input(
-            "Heading (°)",
-            min_value=0.0,
-            max_value=359.0,
-            value=float(boat_data.get("heading_target", 0)),
-            step=1.0,
-            key="heading_target"
-        )
+                st.radio(
+                    "Tack",
+                    options=["Port", "Starboard"],
+                    index=["port", "starboard"].index(tack),
+                    key="tack",
+                    horizontal=True
+                )
 
-        tack = boat_data.get("tack", "port")
+        # -----------------------------------------------------
+        # TRUE HEADING AND SPEED
+        # -----------------------------------------------------
 
-        if tack not in ["port", "starboard"]:
-            tack = "port"
+        nav_col1, nav_col2 = st.columns(2, gap="small")
 
-        st.selectbox(
-            "Tack",
-            options=["port", "starboard"],
-            index=["port", "starboard"].index(tack),
-            key="tack"
-        )
+        with nav_col1:
 
-        st.divider()
+            with st.container(key="true_heading_panel"):
 
-        # =====================================================
-        # 8. NAVIGATION INFORMATION
-        # =====================================================
+                st.metric(
+                    "True heading",
+                    f"{heading:.0f} °"
+                )
 
-        st.subheader("Navigation")
+        with nav_col2:
 
-        st.metric(
-            "True heading",
-            f"{heading:.1f}°"
-        )
+            with st.container(key="speed_panel"):
 
-        st.metric(
-            "True speed",
-            f"{speed_knots:.2f} knots"
-        )
+                st.metric(
+                    "True speed",
+                    f"{speed_knots:.1f} kn"
+                )
 
-        # =====================================================
-        # 9. LAST IMPORTANT EVENT
-        # =====================================================
-
-        st.divider()
-
-        st.subheader("Information")
-
-        st.info(
-            boat_data.get(
-                "information",
-                "Welcome on board"
-            )
-        )
-
-        # =====================================================
-        # 10. WINDY LINK
-        # =====================================================
+        # -----------------------------------------------------
+        # WINDY LINK
+        # -----------------------------------------------------
 
         windy_url = (
             f"https://www.windy.com/{latitude}/{longitude}"
             f"?{latitude},{longitude},11"
         )
 
-        st.link_button(
-            "Windy forecast",
-            windy_url,
-            use_container_width=True
-        )
+        with st.container(key="windy_panel"):
+
+            st.link_button(
+                "Forecast - Windy link",
+                windy_url,
+                use_container_width=True
+            )
+
+        # -----------------------------------------------------
+        # INFORMATION
+        # -----------------------------------------------------
+
+        with st.container(key="information_panel"):
+
+            st.markdown("**Information**")
+
+            st.write(
+                boat_data.get(
+                    "information",
+                    "Welcome on board"
+                )
+            )
+
 
 
 BoatData = GetLastBoat()

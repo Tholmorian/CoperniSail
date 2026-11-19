@@ -1282,10 +1282,10 @@ def DrawInterface(boat_data, AIS_data):
         
                 tack = boat_data.get("tack", "port").lower()
         
-                if tack not in ["port", "starboard", "stop"]:
+                if tack not in ["port", "starboard", "stopped"]:
                     tack = "port"
         
-                options = ["port", "stop", "starboard"]
+                options = ["port", "stopped", "starboard"]
         
                 st.radio(
                     "Tack",
@@ -1293,7 +1293,7 @@ def DrawInterface(boat_data, AIS_data):
                     index=options.index(tack),
                     format_func=lambda x: {
                         "port": "Port",
-                        "stop": "Stop",
+                        "stopped": "Stop",
                         "starboard": "Starboard"
                     }[x],
                     key="tack",
@@ -1356,7 +1356,17 @@ def DrawInterface(boat_data, AIS_data):
                 )
             )
 
-
+def GetUserInput(boat_data)
+    # ---------------------------------------------------------
+    # RETURN USER INPUTS
+    # ---------------------------------------------------------
+    boat_data["boat_key"]= st.session_state.get("boat_key", "ABC123")
+    boat_data["boat_name"]= st.session_state.get("boat_name", "x")
+    boat_data["skipper_name"]=st.session_state.get("skipper_name", "x")
+    boat_data["heading_target"]=float(st.session_state.get("heading_target", 0))
+    boat_data["tack"]=st.session_state.get("tack", "stopped")
+    return boat_data
+    
 
 BoatData = GetLastBoat()
 

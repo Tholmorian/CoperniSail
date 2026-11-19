@@ -1356,7 +1356,7 @@ def DrawInterface(boat_data, AIS_data):
                 )
             )
 
-def GetUserInput(boat_data)
+def GetUserInput(boat_data):
     # ---------------------------------------------------------
     # RETURN USER INPUTS
     # ---------------------------------------------------------

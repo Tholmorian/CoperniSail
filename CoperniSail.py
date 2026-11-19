@@ -894,9 +894,12 @@ def DrawInterface(boat_data, AIS_data):
         <style>
         /* General spacing */
         .block-container {
-            padding-top: 0.8rem;
+            padding-top: 2rem !important;
             padding-bottom: 0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
             max-width: 100%;
+            overflow: visible !important;
         }
 
         div[data-testid="stVerticalBlock"] {
@@ -989,7 +992,11 @@ def DrawInterface(boat_data, AIS_data):
     # ---------------------------------------------------------
     # 3. MAIN LAYOUT
     # ---------------------------------------------------------
-
+    # Small top margin to prevent clipping
+    st.markdown(
+        "<div style='height:10px'></div>",
+        unsafe_allow_html=True
+    )
     map_col, control_col = st.columns(
         [2.15, 1],
         gap="large"
@@ -1065,23 +1072,38 @@ def DrawInterface(boat_data, AIS_data):
                 math.degrees(lon2)
             ]
 
+        # -----------------------------------------------------
+        # CIRCLE TICKS - every 10 degrees
+        # -----------------------------------------------------
+        
+        tick_length = 200       # Total tick length in metres
+        half_tick = tick_length / 2
+        
         for angle in range(0, 360, 10):
-
+        
+            # Start and end points around the circle circumference
+            start_point = DestinationPoint(
+                latitude,
+                longitude,
+                angle,
+                radius - half_tick
+            )
+        
             end_point = DestinationPoint(
                 latitude,
                 longitude,
                 angle,
-                radius
+                radius + half_tick
             )
-
+        
             folium.PolyLine(
                 locations=[
-                    [latitude, longitude],
+                    start_point,
                     end_point
                 ],
                 color="blue",
-                weight=1,
-                opacity=0.4
+                weight=2,
+                opacity=0.9
             ).add_to(m)
 
         # -----------------------------------------------------
@@ -1255,18 +1277,25 @@ def DrawInterface(boat_data, AIS_data):
                 )
 
         with nav_col2:
-
+        
             with st.container(key="tack_panel"):
-
+        
                 tack = boat_data.get("tack", "port").lower()
-
-                if tack not in ["port", "starboard"]:
+        
+                if tack not in ["port", "starboard", "stop"]:
                     tack = "port"
-
+        
+                options = ["port", "stop", "starboard"]
+        
                 st.radio(
                     "Tack",
-                    options=["Port", "Starboard"],
-                    index=["port", "starboard"].index(tack),
+                    options=options,
+                    index=options.index(tack),
+                    format_func=lambda x: {
+                        "port": "Port",
+                        "stop": "Stop",
+                        "starboard": "Starboard"
+                    }[x],
                     key="tack",
                     horizontal=True
                 )

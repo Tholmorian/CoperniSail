@@ -894,7 +894,7 @@ def DrawInterface(boat_data, AIS_data):
         <style>
         /* General spacing */
         .block-container {
-            padding-top: 2rem !important;
+            padding-top: 3rem !important;
             padding-bottom: 0.5rem;
             padding-left: 0.5rem;
             padding-right: 0.5rem;

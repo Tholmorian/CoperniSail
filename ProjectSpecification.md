@@ -90,7 +90,7 @@ Uses the secret [CopernicusMarine] username and password to login in copernicusm
 ## GetAisData
 The function GetAisData(latitude,longitude) returns a dictionnay with boat data that are at less than 5 Nm of the boat position. The data are 'Name':string,'Length':value in m,'Speed':value in m/s,'Heading':value in degree,'UpdateTime':'string with time in ISO format. 
 ## GetUserInput
-The function GetUserInput() returns the values of the user editable fields boat_key, boat_name, skipper_name, heading_target, tack.
+The function GetUserInput(boat_data) returns the values of the user editable fields boat_key, boat_name, skipper_name, heading_target, tack. The boat_data is updated and returned.
 ## SimulateMovement
 The funtion SimulateMovement(time, boat_data, AIS_data) simulates the movement of the boat and AIS boat until the time given, with the data in boat_data and AIS_data. The boat is simulated in a very simple way: The boat is on the closest heading from heading_target but with the constrain that it is on the desired tack and wind angle is higher than min_wind_angle and smaller than max_wind_angles. If the tack is stopped. The boat is at anchorage. The boat navigates with a speed of half the wind speed with a maximum of 5 knots. The current speed is then added to the boat speed. Is sails in one straight step from last_update_time or last AIS update time to the time requested. The new position and time are updated in boat_data and AIS_data. 
 ## CheckColision 
@@ -103,12 +103,19 @@ The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in
 The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. There is at least 2 waypoints, one for dearture and one for arrival.
 It outout a dictionnary with with 'number','latitude','longitude','radius'. Each contain a list of values.
 ## DrawInterface
-The function DrawInterface(boat_data, AIS_data) draws the user interface. It uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. A 5 miles circle with a line every 10 degree is drawn around my boat.
+The function DrawInterface(boat_data, AIS_data) draws the user interface. It uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. A 5 miles circle with a tick every 10 degree is drawn around my boat.
 folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
 Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other editable fields contains the Boat name and Skipper name. Finally, fields with the true heading and speed (in knots) and the boat information are also drawn.
+The user input fields are accessible with :
+      Interface field	st.session_state reference	      Type
+      Boat Key	      st.session_state["boat_key"]	      str
+      Boat Name	      st.session_state["boat_name"]	      str
+      Skipper Name	st.session_state["skipper_name"]	str
+      Target Heading	st.session_state["heading_target"]	float
+      Tack	            st.session_state["tack"]	      str
 ## DrawBoatTriangle
 The function DrawBoatTriangle(latitude,longitude,length,heading) returns the coordinates of a triangle centered in boat position, with boat length and a width of 1/3 of boat length. The output is a dictionnary with keys latitude and longitude. Both are a list of 3 values.
 ## 

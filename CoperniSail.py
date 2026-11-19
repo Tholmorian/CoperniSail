@@ -871,10 +871,7 @@ def DrawInterface(boat_data, AIS_data):
     """
     Draw the CoperniSail user interface.
     """
-    st.set_page_config(
-        layout="wide",
-        initial_sidebar_state="collapsed"
-        )
+
     # ---------------------------------------------------------
     # 1. BOAT DATA
     # ---------------------------------------------------------
@@ -997,7 +994,7 @@ def DrawInterface(boat_data, AIS_data):
     # ---------------------------------------------------------
     # Small top margin to prevent clipping
     st.markdown(
-        "<div style='height:10px'></div>",
+        "<div style='height:15px'></div>",
         unsafe_allow_html=True
     )
     map_col, control_col = st.columns(

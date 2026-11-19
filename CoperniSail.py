@@ -871,7 +871,10 @@ def DrawInterface(boat_data, AIS_data):
     """
     Draw the CoperniSail user interface.
     """
-
+    st.set_page_config(
+        layout="wide",
+        initial_sidebar_state="collapsed"
+        )
     # ---------------------------------------------------------
     # 1. BOAT DATA
     # ---------------------------------------------------------
@@ -884,7 +887,7 @@ def DrawInterface(boat_data, AIS_data):
     speed_knots = speed * 1.943844
 
     boat_name = boat_data.get("boat_name", "My boat")
-    boat_length = float(boat_data.get("length", 4.5))
+    boat_length = float(boat_data.get("length", 6))
 
     # ---------------------------------------------------------
     # 2. INTERFACE STYLE
@@ -1010,7 +1013,7 @@ def DrawInterface(boat_data, AIS_data):
 
         m = folium.Map(
             location=[latitude, longitude],
-            zoom_start=11,
+            zoom_start=13,
             control_scale=True,
             tiles=None
         )
@@ -1336,7 +1339,7 @@ def DrawInterface(boat_data, AIS_data):
         with st.container(key="windy_panel"):
 
             st.link_button(
-                "Forecast - Windy link",
+                "Forecast",
                 windy_url,
                 use_container_width=True
             )

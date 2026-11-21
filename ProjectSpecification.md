@@ -103,12 +103,12 @@ The function CheckWaypoint(latitude,longitude,waypoints) check if the boat is in
 The function GetWaypoint() returns the waypoints as found in a json file 'waypoints.json'. There is at least 2 waypoints, one for dearture and one for arrival.
 It outout a dictionnary with with 'number','latitude','longitude','radius'. Each contain a list of values.
 ## DrawInterface
-The function DrawInterface(boat_data, AIS_data) draws the user interface. It uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. A 5 miles circle with a tick every 10 degree is drawn around my boat.
+The function DrawInterface(boat_data, AIS_data, waypoints) draws the user interface. It uses folium.Map to draw a map, centered on user boat, with triangles drawn for my boat and the boats of AIS. A tooltip with boat name, length and speed is given when the cursor is placed on an AIS boat. A 5 miles circle with a tick every 10 degree is drawn around my boat. The circle of the next waypoint zone is drawn, or the last if there is no next waypoint.
 folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       attr="Tiles &copy; Esri",
       name="Esri Satellite",
   )
-Beside the map are drawn a boat key and a heading editable fields and a tack selector (port or starboard). Other editable fields contains the Boat name and Skipper name. Finally, fields with the true heading and speed (in knots) and the boat information are also drawn.
+Beside the map are drawn a 'boat key' and a 'target heading' editable fields and a 'tack selector' (port or starboard or stopped). Other editable fields contains the 'Boat name' and 'Skipper nam'e. Finally, fields with the 'true heading' and 'true speed' (in knots) and the boat information are also drawn.
 The user input fields are accessible with :
       Interface field	st.session_state reference	      Type
       Boat Key	      st.session_state["boat_key"]	      str

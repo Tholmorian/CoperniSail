@@ -872,7 +872,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
     """
     Draw the CoperniSail user interface.
     """
-
+    interface = st.empty()
     # ---------------------------------------------------------
     # 1. BOAT DATA
     # ---------------------------------------------------------
@@ -1289,7 +1289,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # BOAT KEY
         # -----------------------------------------------------
 
-        with st.container(key="boat_key_panel"):
+        with interface.container(key="boat_key_panel"):
 
             st.text_input(
                 "Boat Key",
@@ -1303,7 +1303,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # BOAT NAME
         # -----------------------------------------------------
 
-        with st.container(key="boat_name_panel"):
+        with interface.container(key="boat_name_panel"):
 
             st.text_input(
                 "Boat Name",
@@ -1315,7 +1315,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # SKIPPER NAME
         # -----------------------------------------------------
 
-        with st.container(key="skipper_panel"):
+        with interface.container(key="skipper_panel"):
 
             st.text_input(
                 "Skipper name",
@@ -1331,7 +1331,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col1:
 
-            with st.container(key="heading_panel"):
+            with interface.container(key="heading_panel"):
 
                 st.number_input(
                     "Target heading (°)",
@@ -1346,7 +1346,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col2:
         
-            with st.container(key="tack_panel"):
+            with interface.container(key="tack_panel"):
         
                 tack = boat_data.get("tack", "stopped").lower()
         
@@ -1376,7 +1376,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col1:
 
-            with st.container(key="true_heading_panel"):
+            with interface.container(key="true_heading_panel"):
 
                 st.metric(
                     "True heading",
@@ -1385,7 +1385,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col2:
 
-            with st.container(key="speed_panel"):
+            with interface.container(key="speed_panel"):
 
                 st.metric(
                     "True speed",
@@ -1401,7 +1401,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
             f"?{latitude},{longitude},11"
         )
 
-        with st.container(key="windy_panel"):
+        with interface.container(key="windy_panel"):
 
             st.link_button(
                 "Forecast",
@@ -1413,7 +1413,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # INFORMATION
         # -----------------------------------------------------
 
-        with st.container(key="information_panel"):
+        with interface.container(key="information_panel"):
 
             st.markdown("**Information**")
 
@@ -1436,18 +1436,17 @@ def GetUserInput(boat_data):
     return boat_data
     
 
-waypoints=GetWaypoint()
 
+waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
 AisData={}
+
 print("DEBUG: Init done", flush=True)
 
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-    print("DEBUG: AisData type:", type(AisData), flush=True)
-    print("DEBUG: AisData content:", AisData, flush=True)
     DrawInterface(BoatData, AisData, waypoints)
     BoatData=GetUserInput(BoatData)
     key=BoatData["boat_key"]
@@ -1501,5 +1500,8 @@ def MainLoop(BoatData,waypoints):
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0            
+    #DrawInterface(BoatData, AisData, waypoints)
 
-MainLoop(BoatData,waypoints)
+app_placeholder = st.empty()
+with app_placeholder.container():
+    MainLoop(BoatData, waypoints)

@@ -1482,6 +1482,13 @@ def MainLoop(BoatData,waypoints):
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0
+        if CheckAground(BoatData["latitude"],BoatData["longitude"]):
+            print("Aground", flush=True)  
+            BoatData["information"]="The boat ran aground"
+            BoatData["latitude"]=waypoints["latitude"][0]
+            BoatData["longitude"]=waypoints["longitude"][0]
+            BoatData["tack"]="stopped"
+            BoatData["last_waypoint"]=0            
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
         if waypoint==1:
             BoatData["start_time"]=datetime.now(timezone.utc).isoformat()

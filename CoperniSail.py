@@ -1333,10 +1333,10 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
                 st.number_input(
                     "Target heading (°)",
-                    min_value=0.0,
-                    max_value=359.0,
+                    min_value=-359,
+                    max_value=359,
                     value=int(boat_data.get("heading_target", 0)),
-                    step=1.0,
+                    step=1,
                     format="%d",
                     key="heading_target"
                 )

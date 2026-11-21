@@ -1443,6 +1443,7 @@ firstLoop=True
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints,firstLoop):
     print("DEBUG: MainLoop start", flush=True)
+    print(f"DEBUG: firstLoop={firstLoop}", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if firstLoop==False:
         BoatData=GetUserInput(BoatData)
@@ -1501,6 +1502,5 @@ def MainLoop(BoatData,waypoints,firstLoop):
     firstLoop=False
     return firstLoop
 
-app_placeholder = st.empty()
 with app_placeholder.container():
     firstLoop=MainLoop(BoatData, waypoints,firstLoop)

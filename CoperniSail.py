@@ -520,7 +520,7 @@ def SimulateMovement(time, boat_data, AIS_data):
     """
   
     EARTH_RADIUS = 6371000.0
-    MAX_BOAT_SPEED = 5.0 * 0.514444  # 5 knots in m/s
+    MAX_BOAT_SPEED = 20.0 * 0.514444  # 5 knots in m/s
 
     def _to_utc(value):
         """Convert a datetime or ISO timestamp to timezone-aware UTC."""
@@ -681,7 +681,7 @@ def SimulateMovement(time, boat_data, AIS_data):
         wind_speed = max(0.0, float(boat_data.get("wind_speed", 0)))
 
         sailing_speed = min(
-            wind_speed / 2.0,
+            wind_speed / 0.5,
             MAX_BOAT_SPEED
         )
         boat_data["speed"] = sailing_speed 

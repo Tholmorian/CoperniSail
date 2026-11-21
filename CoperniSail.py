@@ -1494,15 +1494,14 @@ def MainLoop(BoatData,waypoints):
         if (waypoint>0) and (waypoint>int(BoatData["last_waypoint"])):
             BoatData["last_waypoint"]=waypoint
             print(f"Waypoint {waypoint} reached", flush=True) 
-            BoatData["information"]=f"Race to waypoint {waypoint+1}!"
+            BoatData["information"]=f"Race to waypoint {waypoint+1} !"
         if waypoint==int(waypoints["number"][-1]):
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])
             travel_time = (newTime - start_time).total_seconds()
             # Update best time if this is a new record
-            best_time = BoatData.get("best_time")
-            if (best_time == 0) or (travel_time < best_time_to_arrival):
-                BoatData["best_time"] = travel_time
+            if (best_time == 0) or (travel_time < BoatData.get("best_time_to_arrival")):
+                BoatData["best_time_to_arrival"] = travel_time
             hours = int(travel_time // 3600)
             minutes = int((travel_time % 3600) // 60)
             BoatData["information"]=f"You finished in: {hours}h {minutes}min"

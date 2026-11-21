@@ -1439,14 +1439,15 @@ waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
 AisData={}
 print("DEBUG: Init done", flush=True)
-firstLoop=True
+if "firstLoop" not in st.session_state:
+    st.session_state.firstLoop = True
 @st.fragment(run_every="60s")
-def MainLoop(BoatData,waypoints,firstLoop):
+def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     print(f"DEBUG: firstLoop={firstLoop}", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-    if firstLoop==False:
-        BoatData=GetUserInput(BoatData)
+    if not st.session_state.firstLoop:
+        BoatData = GetUserInput(BoatData)
     key=BoatData["boat_key"]
     if ValidKey(key):
         BoatData=GetMyBoat(key)
@@ -1502,4 +1503,4 @@ def MainLoop(BoatData,waypoints,firstLoop):
     firstLoop=False
     return firstLoop
 
-firstLoop=MainLoop(BoatData, waypoints,firstLoop)
+firstLoop=MainLoop(BoatData, waypoints)

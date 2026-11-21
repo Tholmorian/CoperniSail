@@ -873,556 +873,558 @@ def DrawInterface(boat_data, AIS_data,waypoints):
     Draw the CoperniSail user interface.
     """
     interface = st.empty()
-    # ---------------------------------------------------------
-    # 1. BOAT DATA
-    # ---------------------------------------------------------
+    with interface.container():
+        # ---------------------------------------------------------
+        # 1. BOAT DATA
+        # ---------------------------------------------------------
 
-    latitude = float(boat_data["latitude"])
-    longitude = float(boat_data["longitude"])
+        latitude = float(boat_data["latitude"])
+        longitude = float(boat_data["longitude"])
 
-    heading = float(boat_data.get("true_heading", 0))
-    speed = float(boat_data.get("true_speed", 0))
-    speed_knots = speed * 1.943844
+        heading = float(boat_data.get("true_heading", 0))
+        speed = float(boat_data.get("true_speed", 0))
+        speed_knots = speed * 1.943844
 
-    boat_name = boat_data.get("boat_name", "My boat")
-    boat_length = float(boat_data.get("length", 6))
+        boat_name = boat_data.get("boat_name", "My boat")
+        boat_length = float(boat_data.get("length", 6))
 
-    # ---------------------------------------------------------
-    # 2. INTERFACE STYLE
-    # ---------------------------------------------------------
+        # ---------------------------------------------------------
+        # 2. INTERFACE STYLE
+        # ---------------------------------------------------------
 
-    st.markdown("""
-        <style>
-        /* General spacing */
-        .block-container {
-            padding-top: 3rem !important;
-            padding-bottom: 0.5rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-            max-width: 100%;
-            overflow: visible !important;
-        }
+        st.markdown("""
+            <style>
+            /* General spacing */
+            .block-container {
+                padding-top: 3rem !important;
+                padding-bottom: 0.5rem;
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+                max-width: 100%;
+                overflow: visible !important;
+            }
 
-        div[data-testid="stVerticalBlock"] {
-            gap: 0.5rem;
-        }
+            div[data-testid="stVerticalBlock"] {
+                gap: 0.5rem;
+            }
 
-        /* Blue information panels */
-        .st-key-boat_key_panel,
-        .st-key-boat_name_panel,
-        .st-key-skipper_panel,
-        .st-key-heading_panel,
-        .st-key-tack_panel,
-        .st-key-true_heading_panel,
-        .st-key-speed_panel,
-        .st-key-windy_panel,
-        .st-key-information_panel {
-            background-color: #5082bb;
-            border: 2px solid #315d91;
-            border-radius: 3px;
-            padding: 5px 10px;
-            color: white;
-            text-align: center;
-        }
+            /* Blue information panels */
+            .st-key-boat_key_panel,
+            .st-key-boat_name_panel,
+            .st-key-skipper_panel,
+            .st-key-heading_panel,
+            .st-key-tack_panel,
+            .st-key-true_heading_panel,
+            .st-key-speed_panel,
+            .st-key-windy_panel,
+            .st-key-information_panel {
+                background-color: #5082bb;
+                border: 2px solid #315d91;
+                border-radius: 3px;
+                padding: 5px 10px;
+                color: white;
+                text-align: center;
+            }
 
-        /* Text and labels */
-        .st-key-boat_key_panel label,
-        .st-key-boat_name_panel label,
-        .st-key-skipper_panel label,
-        .st-key-heading_panel label,
-        .st-key-tack_panel label {
-            color: white !important;
-            font-size: 15px;
-        }
+            /* Text and labels */
+            .st-key-boat_key_panel label,
+            .st-key-boat_name_panel label,
+            .st-key-skipper_panel label,
+            .st-key-heading_panel label,
+            .st-key-tack_panel label {
+                color: white !important;
+                font-size: 15px;
+            }
 
-        /* Input fields */
-        .st-key-boat_key_panel input,
-        .st-key-boat_name_panel input,
-        .st-key-skipper_panel input,
-        .st-key-heading_panel input {
-            text-align: center;
-            font-size: 17px;
-        }
+            /* Input fields */
+            .st-key-boat_key_panel input,
+            .st-key-boat_name_panel input,
+            .st-key-skipper_panel input,
+            .st-key-heading_panel input {
+                text-align: center;
+                font-size: 17px;
+            }
 
-        /* Metrics */
-        .st-key-true_heading_panel label,
-        .st-key-speed_panel label {
-            color: white !important;
-        }
+            /* Metrics */
+            .st-key-true_heading_panel label,
+            .st-key-speed_panel label {
+                color: white !important;
+            }
 
-        .st-key-true_heading_panel [data-testid="stMetricValue"],
-        .st-key-speed_panel [data-testid="stMetricValue"] {
-            color: white !important;
-            font-size: 25px;
-        }
+            .st-key-true_heading_panel [data-testid="stMetricValue"],
+            .st-key-speed_panel [data-testid="stMetricValue"] {
+                color: white !important;
+                font-size: 25px;
+            }
 
-        .st-key-true_heading_panel [data-testid="stMetricLabel"],
-        .st-key-speed_panel [data-testid="stMetricLabel"] {
-            font-size: 16px;
-        }
+            .st-key-true_heading_panel [data-testid="stMetricLabel"],
+            .st-key-speed_panel [data-testid="stMetricLabel"] {
+                font-size: 16px;
+            }
 
-        /* Information */
-        .st-key-information_panel {
-            min-height: 95px;
-        }
+            /* Information */
+            .st-key-information_panel {
+                min-height: 95px;
+            }
 
-        .st-key-information_panel p {
-            color: white !important;
-            font-size: 16px;
-        }
+            .st-key-information_panel p {
+                color: white !important;
+                font-size: 16px;
+            }
 
-        /* Buttons */
-        .st-key-windy_panel .stLinkButton a {
-            width: 100%;
-            justify-content: center;
-            background-color: #5082bb;
-            color: white;
-            border: none;
-            font-size: 18px;
-        }
+            /* Buttons */
+            .st-key-windy_panel .stLinkButton a {
+                width: 100%;
+                justify-content: center;
+                background-color: #5082bb;
+                color: white;
+                border: none;
+                font-size: 18px;
+            }
 
-        /* Reduce vertical space */
-        .st-key-boat_key_panel [data-testid="stTextInput"],
-        .st-key-boat_name_panel [data-testid="stTextInput"],
-        .st-key-skipper_panel [data-testid="stTextInput"] {
-            margin-bottom: 0;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+            /* Reduce vertical space */
+            .st-key-boat_key_panel [data-testid="stTextInput"],
+            .st-key-boat_name_panel [data-testid="stTextInput"],
+            .st-key-skipper_panel [data-testid="stTextInput"] {
+                margin-bottom: 0;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-    # ---------------------------------------------------------
-    # 3. MAIN LAYOUT
-    # ---------------------------------------------------------
-    # Small top margin to prevent clipping
-    st.markdown(
-        "<div style='height:15px'></div>",
-        unsafe_allow_html=True
-    )
-    map_col, control_col = st.columns(
-        [2.15, 1],
-        gap="large"
-    )
-
-    # =========================================================
-    # 4. MAP
-    # =========================================================
-
-    with map_col:
-
-        m = folium.Map(
-            location=[latitude, longitude],
-            zoom_start=13,
-            control_scale=True,
-            tiles=None
+        # ---------------------------------------------------------
+        # 3. MAIN LAYOUT
+        # ---------------------------------------------------------
+        # Small top margin to prevent clipping
+        st.markdown(
+            "<div style='height:15px'></div>",
+            unsafe_allow_html=True
+        )
+        map_col, control_col = st.columns(
+            [2.15, 1],
+            gap="large"
         )
 
-        folium.TileLayer(
-            tiles=(
-                "https://server.arcgisonline.com/ArcGIS/"
-                "rest/services/World_Imagery/MapServer/tile/"
-                "{z}/{y}/{x}"
-            ),
-            attr="Tiles © Esri",
-            name="Satellite"
-        ).add_to(m)
+        # =========================================================
+        # 4. MAP
+        # =========================================================
 
-        # -----------------------------------------------------
-        # 5 NM CIRCLE
-        # -----------------------------------------------------
+        with map_col:
 
-        radius = 5 * 1852
-
-        folium.Circle(
-            location=[latitude, longitude],
-            radius=radius,
-            color="blue",
-            weight=1,
-            fill=False,
-            tooltip="5 NM"
-        ).add_to(m)
-
-        # -----------------------------------------------------
-        # RADIAL LINES
-        # -----------------------------------------------------
-
-        def DestinationPoint(lat, lon, bearing, distance):
-
-            R = 6371000
-
-            lat1 = math.radians(lat)
-            lon1 = math.radians(lon)
-            brng = math.radians(bearing)
-
-            d = distance / R
-
-            lat2 = math.asin(
-                math.sin(lat1) * math.cos(d)
-                + math.cos(lat1) * math.sin(d)
-                * math.cos(brng)
+            m = folium.Map(
+                location=[latitude, longitude],
+                zoom_start=13,
+                control_scale=True,
+                tiles=None
             )
 
-            lon2 = lon1 + math.atan2(
-                math.sin(brng) * math.sin(d)
-                * math.cos(lat1),
-                math.cos(d)
-                - math.sin(lat1) * math.sin(lat2)
-            )
-
-            return [
-                math.degrees(lat2),
-                math.degrees(lon2)
-            ]
-
-        # -----------------------------------------------------
-        # CIRCLE TICKS - every 10 degrees
-        # -----------------------------------------------------
-        
-        tick_length = 200       # Total tick length in metres
-        half_tick = tick_length / 2
-        
-        for angle in range(0, 360, 10):
-        
-            # Start and end points around the circle circumference
-            start_point = DestinationPoint(
-                latitude,
-                longitude,
-                angle,
-                radius - half_tick
-            )
-        
-            end_point = DestinationPoint(
-                latitude,
-                longitude,
-                angle,
-                radius + half_tick
-            )
-        
-            folium.PolyLine(
-                locations=[
-                    start_point,
-                    end_point
-                ],
-                color="blue",
-                weight=2,
-                opacity=0.9
+            folium.TileLayer(
+                tiles=(
+                    "https://server.arcgisonline.com/ArcGIS/"
+                    "rest/services/World_Imagery/MapServer/tile/"
+                    "{z}/{y}/{x}"
+                ),
+                attr="Tiles © Esri",
+                name="Satellite"
             ).add_to(m)
 
+            # -----------------------------------------------------
+            # 5 NM CIRCLE
+            # -----------------------------------------------------
 
-        # -----------------------------------------------------
-        # NEXT WAYPOINT ZONE
-        # -----------------------------------------------------
+            radius = 5 * 1852
 
-        if isinstance(waypoints, dict):
+            folium.Circle(
+                location=[latitude, longitude],
+                radius=radius,
+                color="blue",
+                weight=1,
+                fill=False,
+                tooltip="5 NM"
+            ).add_to(m)
 
-            # Get the last waypoint already passed
-            last_waypoint = int(
-                boat_data.get("last_waypoint", 0)
-            )
+            # -----------------------------------------------------
+            # RADIAL LINES
+            # -----------------------------------------------------
 
-            # Build waypoint list from dictionary
-            waypoint_list = []
+            def DestinationPoint(lat, lon, bearing, distance):
 
-            for number, lat, lon, waypoint_radius in zip(
-                waypoints.get("number", []),
-                waypoints.get("latitude", []),
-                waypoints.get("longitude", []),
-                waypoints.get("radius", [])
-            ):
-                waypoint_list.append({
-                    "number": int(number),
-                    "latitude": float(lat),
-                    "longitude": float(lon),
-                    "radius": float(waypoint_radius)
-                })
+                R = 6371000
 
-            if waypoint_list:
+                lat1 = math.radians(lat)
+                lon1 = math.radians(lon)
+                brng = math.radians(bearing)
 
-                # Find the next waypoint
-                next_waypoints = [
-                    wp for wp in waypoint_list
-                    if wp["number"] > last_waypoint
+                d = distance / R
+
+                lat2 = math.asin(
+                    math.sin(lat1) * math.cos(d)
+                    + math.cos(lat1) * math.sin(d)
+                    * math.cos(brng)
+                )
+
+                lon2 = lon1 + math.atan2(
+                    math.sin(brng) * math.sin(d)
+                    * math.cos(lat1),
+                    math.cos(d)
+                    - math.sin(lat1) * math.sin(lat2)
+                )
+
+                return [
+                    math.degrees(lat2),
+                    math.degrees(lon2)
                 ]
 
-                if next_waypoints:
-                    waypoint = min(
-                        next_waypoints,
-                        key=lambda wp: wp["number"]
-                    )
-                else:
-                    # No next waypoint: display the last one
-                    waypoint = max(
-                        waypoint_list,
-                        key=lambda wp: wp["number"]
-                    )
-
-                wp_number = waypoint["number"]
-                wp_lat = waypoint["latitude"]
-                wp_lon = waypoint["longitude"]
-
-                # Convert radius from nautical miles to metres
-                wp_radius = waypoint["radius"] * 1852
-
-                # Draw waypoint passage zone
-                folium.Circle(
-                    location=[wp_lat, wp_lon],
-                    radius=wp_radius,
-                    color="lime",
-                    weight=3,
-                    fill=False,
-                    tooltip=(
-                        f"Next waypoint: {wp_number}<br>"
-                    )
+            # -----------------------------------------------------
+            # CIRCLE TICKS - every 10 degrees
+            # -----------------------------------------------------
+            
+            tick_length = 200       # Total tick length in metres
+            half_tick = tick_length / 2
+            
+            for angle in range(0, 360, 10):
+            
+                # Start and end points around the circle circumference
+                start_point = DestinationPoint(
+                    latitude,
+                    longitude,
+                    angle,
+                    radius - half_tick
+                )
+            
+                end_point = DestinationPoint(
+                    latitude,
+                    longitude,
+                    angle,
+                    radius + half_tick
+                )
+            
+                folium.PolyLine(
+                    locations=[
+                        start_point,
+                        end_point
+                    ],
+                    color="blue",
+                    weight=2,
+                    opacity=0.9
                 ).add_to(m)
 
-        # -----------------------------------------------------
-        # USER BOAT
-        # -----------------------------------------------------
 
-        triangle = DrawBoatTriangle(
-            latitude,
-            longitude,
-            boat_length,
-            heading
-        )
+            # -----------------------------------------------------
+            # NEXT WAYPOINT ZONE
+            # -----------------------------------------------------
 
-        coordinates = list(zip(
-            triangle["latitude"],
-            triangle["longitude"]
-        ))
+            if isinstance(waypoints, dict):
 
-        folium.Polygon(
-            locations=coordinates,
-            color="red",
-            weight=2,
-            fill=True,
-            fill_color="red",
-            fill_opacity=1,
-            tooltip=boat_name
-        ).add_to(m)
-
-        # -----------------------------------------------------
-        # AIS VESSELS
-        # -----------------------------------------------------
-
-        def GetAISValue(key, index, default=None):
-
-            values = AIS_data.get(
-                key,
-                AIS_data.get(key.lower(), [])
-            )
-
-            if isinstance(values, list) and index < len(values):
-                value = values[index]
-
-                if value is not None:
-                    return value
-
-            return default
-
-        if isinstance(AIS_data, dict):
-
-            ais_latitudes = AIS_data.get(
-                "latitude",
-                AIS_data.get("Latitude", [])
-            )
-
-            for i in range(len(ais_latitudes)):
-
-                ais_lat = GetAISValue("latitude", i)
-                ais_lon = GetAISValue("longitude", i)
-
-                if ais_lat is None or ais_lon is None:
-                    continue
-
-                ais_name = GetAISValue("name", i, "Unknown")
-                ais_length = float(GetAISValue("length", i, 10))
-                ais_speed = float(GetAISValue("speed", i, 0))
-                ais_heading = float(GetAISValue("heading", i, 0))
-
-                triangle = DrawBoatTriangle(
-                    float(ais_lat),
-                    float(ais_lon),
-                    ais_length,
-                    ais_heading
+                # Get the last waypoint already passed
+                last_waypoint = int(
+                    boat_data.get("last_waypoint", 0)
                 )
 
-                coordinates = list(zip(
-                    triangle["latitude"],
-                    triangle["longitude"]
-                ))
+                # Build waypoint list from dictionary
+                waypoint_list = []
 
-                tooltip = (
-                    f"Name: {html.escape(str(ais_name))}<br>"
-                    f"Length: {ais_length:.1f} m<br>"
-                    f"Speed: {ais_speed * 1.943844:.1f} knots"
-                )
+                for number, lat, lon, waypoint_radius in zip(
+                    waypoints.get("number", []),
+                    waypoints.get("latitude", []),
+                    waypoints.get("longitude", []),
+                    waypoints.get("radius", [])
+                ):
+                    waypoint_list.append({
+                        "number": int(number),
+                        "latitude": float(lat),
+                        "longitude": float(lon),
+                        "radius": float(waypoint_radius)
+                    })
 
-                folium.Polygon(
-                    locations=coordinates,
-                    color="orange",
-                    weight=1,
-                    fill=True,
-                    fill_color="orange",
-                    fill_opacity=0.8,
-                    tooltip=folium.Tooltip(tooltip)
-                ).add_to(m)
+                if waypoint_list:
 
-        # -----------------------------------------------------
-        # DISPLAY MAP
-        # -----------------------------------------------------
+                    # Find the next waypoint
+                    next_waypoints = [
+                        wp for wp in waypoint_list
+                        if wp["number"] > last_waypoint
+                    ]
 
-        st_folium(
-            m,
-            width=None,
-            height=680,
-            key="copernisail_map",
-            returned_objects=[]
-        )
+                    if next_waypoints:
+                        waypoint = min(
+                            next_waypoints,
+                            key=lambda wp: wp["number"]
+                        )
+                    else:
+                        # No next waypoint: display the last one
+                        waypoint = max(
+                            waypoint_list,
+                            key=lambda wp: wp["number"]
+                        )
 
-    # =========================================================
-    # 5. RIGHT CONTROL PANEL
-    # =========================================================
+                    wp_number = waypoint["number"]
+                    wp_lat = waypoint["latitude"]
+                    wp_lon = waypoint["longitude"]
 
-    with control_col:
+                    # Convert radius from nautical miles to metres
+                    wp_radius = waypoint["radius"] * 1852
 
-        # -----------------------------------------------------
-        # BOAT KEY
-        # -----------------------------------------------------
+                    # Draw waypoint passage zone
+                    folium.Circle(
+                        location=[wp_lat, wp_lon],
+                        radius=wp_radius,
+                        color="lime",
+                        weight=3,
+                        fill=False,
+                        tooltip=(
+                            f"Next waypoint: {wp_number}<br>"
+                        )
+                    ).add_to(m)
 
-        with st.container(key="boat_key_panel"):
+            # -----------------------------------------------------
+            # USER BOAT
+            # -----------------------------------------------------
 
-            st.text_input(
-                "Boat Key",
-                value=boat_data.get("boat_key", ""),
-                type="password",
-                key="boat_key",
-                label_visibility="visible"
+            triangle = DrawBoatTriangle(
+                latitude,
+                longitude,
+                boat_length,
+                heading
             )
 
-        # -----------------------------------------------------
-        # BOAT NAME
-        # -----------------------------------------------------
+            coordinates = list(zip(
+                triangle["latitude"],
+                triangle["longitude"]
+            ))
 
-        with st.container(key="boat_name_panel"):
+            folium.Polygon(
+                locations=coordinates,
+                color="red",
+                weight=2,
+                fill=True,
+                fill_color="red",
+                fill_opacity=1,
+                tooltip=boat_name
+            ).add_to(m)
 
-            st.text_input(
-                "Boat Name",
-                value=boat_name,
-                key="boat_name"
+            # -----------------------------------------------------
+            # AIS VESSELS
+            # -----------------------------------------------------
+
+            def GetAISValue(key, index, default=None):
+
+                values = AIS_data.get(
+                    key,
+                    AIS_data.get(key.lower(), [])
+                )
+
+                if isinstance(values, list) and index < len(values):
+                    value = values[index]
+
+                    if value is not None:
+                        return value
+
+                return default
+
+            if isinstance(AIS_data, dict):
+
+                ais_latitudes = AIS_data.get(
+                    "latitude",
+                    AIS_data.get("Latitude", [])
+                )
+
+                for i in range(len(ais_latitudes)):
+
+                    ais_lat = GetAISValue("latitude", i)
+                    ais_lon = GetAISValue("longitude", i)
+
+                    if ais_lat is None or ais_lon is None:
+                        continue
+
+                    ais_name = GetAISValue("name", i, "Unknown")
+                    ais_length = float(GetAISValue("length", i, 10))
+                    ais_speed = float(GetAISValue("speed", i, 0))
+                    ais_heading = float(GetAISValue("heading", i, 0))
+
+                    triangle = DrawBoatTriangle(
+                        float(ais_lat),
+                        float(ais_lon),
+                        ais_length,
+                        ais_heading
+                    )
+
+                    coordinates = list(zip(
+                        triangle["latitude"],
+                        triangle["longitude"]
+                    ))
+
+                    tooltip = (
+                        f"Name: {html.escape(str(ais_name))}<br>"
+                        f"Length: {ais_length:.1f} m<br>"
+                        f"Speed: {ais_speed * 1.943844:.1f} knots"
+                    )
+
+                    folium.Polygon(
+                        locations=coordinates,
+                        color="orange",
+                        weight=1,
+                        fill=True,
+                        fill_color="orange",
+                        fill_opacity=0.8,
+                        tooltip=folium.Tooltip(tooltip)
+                    ).add_to(m)
+
+            # -----------------------------------------------------
+            # DISPLAY MAP
+            # -----------------------------------------------------
+
+            st_folium(
+                m,
+                width=None,
+                height=680,
+                key="copernisail_map",
+                returned_objects=[]
             )
 
-        # -----------------------------------------------------
-        # SKIPPER NAME
-        # -----------------------------------------------------
+        # =========================================================
+        # 5. RIGHT CONTROL PANEL
+        # =========================================================
 
-        with st.container(key="skipper_panel"):
+        with control_col:
 
-            st.text_input(
-                "Skipper name",
-                value=boat_data.get("skipper_name", ""),
-                key="skipper_name"
+            # -----------------------------------------------------
+            # BOAT KEY
+            # -----------------------------------------------------
+
+            with st.container(key="boat_key_panel"):
+
+                st.text_input(
+                    "Boat Key",
+                    value=boat_data.get("boat_key", ""),
+                    type="password",
+                    key="boat_key",
+                    label_visibility="visible"
+                )
+
+            # -----------------------------------------------------
+            # BOAT NAME
+            # -----------------------------------------------------
+
+            with st.container(key="boat_name_panel"):
+
+                st.text_input(
+                    "Boat Name",
+                    value=boat_name,
+                    key="boat_name"
+                )
+
+            # -----------------------------------------------------
+            # SKIPPER NAME
+            # -----------------------------------------------------
+
+            with st.container(key="skipper_panel"):
+
+                st.text_input(
+                    "Skipper name",
+                    value=boat_data.get("skipper_name", ""),
+                    key="skipper_name"
+                )
+
+            # -----------------------------------------------------
+            # TARGET HEADING AND TACK
+            # -----------------------------------------------------
+
+            nav_col1, nav_col2 = st.columns(2, gap="small")
+
+            with nav_col1:
+
+                with st.container(key="heading_panel"):
+
+                    st.number_input(
+                        "Target heading (°)",
+                        min_value=0.0,
+                        max_value=359.0,
+                        value=float(
+                            boat_data.get("heading_target", 0)
+                        ),
+                        step=1.0,
+                        key="heading_target"
+                    )
+
+            with nav_col2:
+            
+                with st.container(key="tack_panel"):
+            
+                    tack = boat_data.get("tack", "stopped").lower()
+            
+                    if tack not in ["port", "starboard", "stopped"]:
+                        tack = "port"
+            
+                    options = ["port", "stopped", "starboard"]
+            
+                    st.radio(
+                        "Tack",
+                        options=options,
+                        index=options.index(tack),
+                        format_func=lambda x: {
+                            "port": "Port",
+                            "stopped": "Stop",
+                            "starboard": "Starboard"
+                        }[x],
+                        key="tack",
+                        horizontal=True
+                    )
+
+            # -----------------------------------------------------
+            # TRUE HEADING AND SPEED
+            # -----------------------------------------------------
+
+            nav_col1, nav_col2 = st.columns(2, gap="small")
+
+            with nav_col1:
+
+                with st.container(key="true_heading_panel"):
+
+                    st.metric(
+                        "True heading",
+                        f"{heading:.0f} °"
+                    )
+
+            with nav_col2:
+
+                with st.container(key="speed_panel"):
+
+                    st.metric(
+                        "True speed",
+                        f"{speed_knots:.1f} kn"
+                    )
+
+            # -----------------------------------------------------
+            # WINDY LINK
+            # -----------------------------------------------------
+
+            windy_url = (
+                f"https://www.windy.com/{latitude}/{longitude}"
+                f"?{latitude},{longitude},11"
             )
 
-        # -----------------------------------------------------
-        # TARGET HEADING AND TACK
-        # -----------------------------------------------------
+            with st.container(key="windy_panel"):
 
-        nav_col1, nav_col2 = st.columns(2, gap="small")
-
-        with nav_col1:
-
-            with st.container(key="heading_panel"):
-
-                st.number_input(
-                    "Target heading (°)",
-                    min_value=0.0,
-                    max_value=359.0,
-                    value=float(
-                        boat_data.get("heading_target", 0)
-                    ),
-                    step=1.0,
-                    key="heading_target"
+                st.link_button(
+                    "Forecast",
+                    windy_url,
+                    use_container_width=True
                 )
 
-        with nav_col2:
-        
-            with st.container(key="tack_panel"):
-        
-                tack = boat_data.get("tack", "stopped").lower()
-        
-                if tack not in ["port", "starboard", "stopped"]:
-                    tack = "port"
-        
-                options = ["port", "stopped", "starboard"]
-        
-                st.radio(
-                    "Tack",
-                    options=options,
-                    index=options.index(tack),
-                    format_func=lambda x: {
-                        "port": "Port",
-                        "stopped": "Stop",
-                        "starboard": "Starboard"
-                    }[x],
-                    key="tack",
-                    horizontal=True
+            # -----------------------------------------------------
+            # INFORMATION
+            # -----------------------------------------------------
+
+            with st.container(key="information_panel"):
+
+                st.markdown("**Information**")
+
+                st.write(
+                    boat_data.get(
+                        "information",
+                        "Welcome on board"
+                    )
                 )
-
-        # -----------------------------------------------------
-        # TRUE HEADING AND SPEED
-        # -----------------------------------------------------
-
-        nav_col1, nav_col2 = st.columns(2, gap="small")
-
-        with nav_col1:
-
-            with st.container(key="true_heading_panel"):
-
-                st.metric(
-                    "True heading",
-                    f"{heading:.0f} °"
-                )
-
-        with nav_col2:
-
-            with st.container(key="speed_panel"):
-
-                st.metric(
-                    "True speed",
-                    f"{speed_knots:.1f} kn"
-                )
-
-        # -----------------------------------------------------
-        # WINDY LINK
-        # -----------------------------------------------------
-
-        windy_url = (
-            f"https://www.windy.com/{latitude}/{longitude}"
-            f"?{latitude},{longitude},11"
-        )
-
-        with st.container(key="windy_panel"):
-
-            st.link_button(
-                "Forecast",
-                windy_url,
-                use_container_width=True
-            )
-
-        # -----------------------------------------------------
-        # INFORMATION
-        # -----------------------------------------------------
-
-        with st.container(key="information_panel"):
-
-            st.markdown("**Information**")
-
-            st.write(
-                boat_data.get(
-                    "information",
-                    "Welcome on board"
-                )
-            )
+    return interface
 
 def GetUserInput(boat_data):
     # ---------------------------------------------------------

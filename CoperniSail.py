@@ -17,6 +17,7 @@ from roaring_landmask import RoaringLandmask
 import html
 import folium
 from streamlit_folium import st_folium
+import logging
 
 def GenerateKey():
     # 1. Generate 8 random characters (capital letters and numbers) [1]
@@ -1460,5 +1461,5 @@ AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-st.write(BoatData['information'])
+logging.debug(BoatData['information'])
 DrawInterface(BoatData, AisData)

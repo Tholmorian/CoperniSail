@@ -1437,6 +1437,8 @@ def GetUserInput(boat_data):
     
 
 waypoints=GetWaypoint()
+print("DEBUG: Waypoints type:", type(waypoints), flush=True)
+print("DEBUG: Waypoints content:", waypoints, flush=True)
 BoatData = MakeBoat("0",waypoints)
 AisData={}
 print("DEBUG: Init done", flush=True)

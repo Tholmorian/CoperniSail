@@ -1444,6 +1444,7 @@ print("DEBUG: Init done", flush=True)
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
+    AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     DrawInterface(BoatData, AisData, waypoints)
     BoatData=GetUserInput(BoatData)
     key=BoatData["boat_key"]
@@ -1465,8 +1466,7 @@ def MainLoop(BoatData,waypoints):
         BoatData["current_speed"]=current_speed
         BoatData["current_direction"]=current_direction
         BoatData["meteo_update_time"]=datetime.now(timezone.utc).isoformat()
-        print("Meteo updated", flush=True)
-    AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
+        print("Meteo updated", flush=True)  
     while datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("last_update_time")) >= timedelta(seconds=10):
         newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
         BoatData, AisData=SimulateMovement(newTime, BoatData, AisData)

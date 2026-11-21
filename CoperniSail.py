@@ -1106,6 +1106,87 @@ def DrawInterface(boat_data, AIS_data):
                 opacity=0.9
             ).add_to(m)
 
+
+        # -----------------------------------------------------
+        # NEXT WAYPOINT ZONE
+        # -----------------------------------------------------
+
+        if isinstance(waypoints, dict):
+
+            # Get the last waypoint already passed
+            last_waypoint = int(
+                boat_data.get("last_waypoint", 0)
+            )
+
+            # Build waypoint list from dictionary
+            waypoint_list = []
+
+            for number, lat, lon, waypoint_radius in zip(
+                waypoints.get("number", []),
+                waypoints.get("latitude", []),
+                waypoints.get("longitude", []),
+                waypoints.get("radius", [])
+            ):
+                waypoint_list.append({
+                    "number": int(number),
+                    "latitude": float(lat),
+                    "longitude": float(lon),
+                    "radius": float(waypoint_radius)
+                })
+
+            if waypoint_list:
+
+                # Find the next waypoint
+                next_waypoints = [
+                    wp for wp in waypoint_list
+                    if wp["number"] > last_waypoint
+                ]
+
+                if next_waypoints:
+                    waypoint = min(
+                        next_waypoints,
+                        key=lambda wp: wp["number"]
+                    )
+                else:
+                    # No next waypoint: display the last one
+                    waypoint = max(
+                        waypoint_list,
+                        key=lambda wp: wp["number"]
+                    )
+
+                wp_number = waypoint["number"]
+                wp_lat = waypoint["latitude"]
+                wp_lon = waypoint["longitude"]
+
+                # Convert radius from nautical miles to metres
+                wp_radius = waypoint["radius"] * 1852
+
+                # Draw waypoint passage zone
+                folium.Circle(
+                    location=[wp_lat, wp_lon],
+                    radius=wp_radius,
+                    color="lime",
+                    weight=3,
+                    fill=True,
+                    fill_color="lime",
+                    fill_opacity=0.15,
+                    tooltip=(
+                        f"Next waypoint: {wp_number}<br>"
+                        f"Radius: {waypoint['radius']:.2f} NM"
+                    )
+                ).add_to(m)
+
+                # Mark waypoint centre
+                folium.CircleMarker(
+                    location=[wp_lat, wp_lon],
+                    radius=5,
+                    color="lime",
+                    fill=True,
+                    fill_color="lime",
+                    fill_opacity=1,
+                    tooltip=f"Waypoint {wp_number}"
+                ).add_to(m)
+
         # -----------------------------------------------------
         # USER BOAT
         # -----------------------------------------------------

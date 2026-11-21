@@ -1167,12 +1167,9 @@ def DrawInterface(boat_data, AIS_data):
                     radius=wp_radius,
                     color="lime",
                     weight=3,
-                    fill=True,
-                    fill_color="lime",
-                    fill_opacity=0.15,
+                    fill=False,
                     tooltip=(
                         f"Next waypoint: {wp_number}<br>"
-                        f"Radius: {waypoint['radius']:.2f} NM"
                     )
                 ).add_to(m)
 
@@ -1450,10 +1447,8 @@ def GetUserInput(boat_data):
     
 
 BoatData = GetLastBoat()
-
 newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
 waypoints=GetWaypoint()
-
 BoatData["tack"]="port"
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
 BoatData["wind_speed"]=wind_speed
@@ -1465,5 +1460,5 @@ AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
 BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-
+st.write(boat_data['information'])
 DrawInterface(BoatData, AisData)

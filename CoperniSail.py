@@ -868,7 +868,7 @@ def CheckWaypoint(latitude, longitude, waypoints):
 
 
 
-def DrawInterface(boat_data, AIS_data):
+def DrawInterface(boat_data, AIS_data,waypoints):
     """
     Draw the CoperniSail user interface.
     """
@@ -1447,10 +1447,11 @@ def GetUserInput(boat_data):
     return boat_data
     
 
-BoatData = GetLastBoat()
-newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
 waypoints=GetWaypoint()
-BoatData["tack"]="port"
+BoatData = MakeBoat()
+newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
+AisData={}
+DrawInterface(BoatData, AisData, waypoints)
 wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
 BoatData["wind_speed"]=wind_speed
 BoatData["wind_direction"]=wind_direction
@@ -1462,4 +1463,4 @@ BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatD
 colision=CheckColision(BoatData, AisData)
 waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
 print(GetUserInput(BoatData), flush=True)
-DrawInterface(BoatData, AisData)
+

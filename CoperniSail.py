@@ -1455,7 +1455,7 @@ def MainLoop(BoatData,waypoints):
          BoatData["boat_key"]="0"
          BoatData["information"]="Boat key not valid"
 
-    if datetime.now(timezone.utc) - datetime.fromisoformat(boat_data.get("meteo_update_time")) < timedelta(minutes=10):
+    if datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("meteo_update_time")) < timedelta(minutes=10):
         print("Meteo recent", flush=True)
     else:
         wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
@@ -1466,7 +1466,7 @@ def MainLoop(BoatData,waypoints):
         BoatData["current_direction"]=current_direction
         print("Meteo updated", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-    while datetime.now(timezone.utc) - datetime.fromisoformat(boat_data.get("last_update_time")) >= timedelta(seconds=10):
+    while datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("last_update_time")) >= timedelta(seconds=10):
         newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
         BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
         colision=CheckColision(BoatData, AisData)

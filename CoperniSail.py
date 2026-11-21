@@ -79,7 +79,7 @@ def MakeBoat(key: str, waypoints: dict) -> dict:
 
     # Departure waypoint default location (waypoint number 1)
     start_lat = 50.97
-    start_lon = 1.87
+    start_lon = 1.83
 
     # Extract latitude/longitude from waypoints if provided
     if isinstance(waypoints, dict):
@@ -124,7 +124,7 @@ def GetWaypoint() -> dict:
     {
         'number': [1, 2, ...],
         'latitude': [50.97, 51.11, ...],
-        'longitude': [1.87, 1.31, ...],
+        'longitude': [1.83, 1.31, ...],
         'radius': [0.5, 0.5, ...]
     }
     """
@@ -302,7 +302,7 @@ def GetWind(latitude,longitude):
 
 def GetAisData(latitude,longitude):
   # Fetch AIS Vessels
-  radius_nm = 5
+  radius_nm = 10
   lat_offset = radius_nm / 60.0
   lon_offset = radius_nm / (60.0 * math.cos(math.radians(latitude)))
   min_lat = latitude - lat_offset
@@ -1438,18 +1438,37 @@ def GetUserInput(boat_data):
 
 waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
-newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
 AisData={}
 DrawInterface(BoatData, AisData, waypoints)
-wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
-BoatData["wind_speed"]=wind_speed
-BoatData["wind_direction"]=wind_direction
-current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])
-BoatData["current_speed"]=current_speed
-BoatData["current_direction"]=current_direction
-AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
-colision=CheckColision(BoatData, AisData)
-waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-print(GetUserInput(BoatData), flush=True)
 
+@st.fragment(run_every="60s")
+def MainLoop():
+    BoatData=GetUserInput(BoatData)
+    key=BoatData["boat_key"]
+    if ValidKey(key):
+        BoatData=GetMyBoat(key)
+        if BoatData is None:
+            BoatData = MakeBoat(key,waypoints)
+    else:
+         BoatData["boat_key"]="0"
+         BoatData["information"]="Boat key not valid"
+
+    if datetime.now(timezone.utc) - datetime.fromisoformat(boat_data.get("meteo_update_time")) < timedelta(minutes=10):
+        print("Meteo recent", flush=True)
+    else:
+        wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
+        BoatData["wind_speed"]=wind_speed
+        BoatData["wind_direction"]=wind_direction
+        current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])
+        BoatData["current_speed"]=current_speed
+        BoatData["current_direction"]=current_direction
+        print("Meteo updated", flush=True)
+    AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
+    while datetime.now(timezone.utc) - datetime.fromisoformat(boat_data.get("last_update_time")) >= timedelta(seconds=10):
+        newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
+        BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
+        colision=CheckColision(BoatData, AisData)
+        waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
+    DrawInterface(BoatData, AisData, waypoints)    
+
+MainLoop()

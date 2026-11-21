@@ -44,7 +44,7 @@ The database data contains all the following fields for each entry:
 The database login data are stored in the secrets file of the Streamlit cloud. 
 
 ## waypoint
-The waypoints.json file contains a list of waypoints with fields 'number','latitude','longitude','radius'. Numbers starts with 1. The default departure is number 1, latitude 50.97, longitude 1.87, radius 0.5 mille. The default arrivale is number 2, latitude 51.11, longitude 1.31, radius 0.5 mille. 
+The waypoints.json file contains a list of waypoints with fields 'number','latitude','longitude','radius'. Numbers starts with 1. The default departure is number 1, latitude 50.97, longitude 1.83, radius 0.5 mille. The default arrivale is number 2, latitude 51.11, longitude 1.31, radius 0.5 mille. 
 
 # Functions descriptions
 
@@ -59,7 +59,7 @@ The initialisation consists in these steps:
 It loops every 60s. In each loop, it loops through all boats in the database, starting by the boat which has the boat key indicated in the boat key field. It follows with the boat that has the oldest update time and repeat until every update time is more recent than 5min. The loop content is described hereunder:
 
 - If the boat do not exist and the key is valid as tested by function ValidKey, create a new boat with function MakeBoat.
-- Update in database last_update_time for the boat to prevent update by another user
+- Update in database last_update_time for the boat to prevent update by another user (included in BetMyBoat and BetLastBoat functions)
 - If meteo is older than 10min, update meteo data with function GetWind and function GetCurrent. Keep values to update all boat data in database at once.
 - Load AIS data with function GetAisData.
 - If the simulated boat is my boat, get controls from user interface with function GetUserInput.

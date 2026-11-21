@@ -1437,8 +1437,7 @@ def GetUserInput(boat_data):
     
 
 waypoints=GetWaypoint()
-print("DEBUG: Waypoints type:", type(waypoints), flush=True)
-print("DEBUG: Waypoints content:", waypoints, flush=True)
+
 BoatData = MakeBoat("0",waypoints)
 AisData={}
 print("DEBUG: Init done", flush=True)
@@ -1447,6 +1446,8 @@ print("DEBUG: Init done", flush=True)
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
+    print("DEBUG: AisData type:", type(AisData), flush=True)
+    print("DEBUG: AisData content:", AisData, flush=True)
     DrawInterface(BoatData, AisData, waypoints)
     BoatData=GetUserInput(BoatData)
     key=BoatData["boat_key"]
@@ -1475,8 +1476,8 @@ def MainLoop(BoatData,waypoints):
         colision=CheckColision(BoatData, AisData)
         if len(colision)>0:
             BoatData["information"]="Collision with "+AisData["boat_name"][colision]
-            BoatData["latitude"]=waypoints[0]["latitude"]
-            BoatData["longitude"]=waypoints[0]["longitude"]
+            BoatData["latitude"]=waypoints["latitude"][0]
+            BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
@@ -1485,7 +1486,7 @@ def MainLoop(BoatData,waypoints):
         if (waypoint>0) and (waypoint>int(BoatData["last_waypoint"])):
             BoatData["last_waypoint"]=waypoint
             print(f"Waypoint {waypoint} reached", flush=True)  
-        if waypoint==int(waypoints[-1]["number"]):
+        if waypoint==int(waypoints["number"][-1]):
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])
             travel_time = (newTime - start_time).total_seconds()
@@ -1496,8 +1497,8 @@ def MainLoop(BoatData,waypoints):
             hours = int(travel_time // 3600)
             minutes = int((travel_time % 3600) // 60)
             BoatData["information"]=f"You finished in: {hours}h {minutes}min"
-            BoatData["latitude"]=waypoints[0]["latitude"]
-            BoatData["longitude"]=waypoints[0]["longitude"]
+            BoatData["latitude"]=waypoints["latitude"][0]
+            BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0            
 

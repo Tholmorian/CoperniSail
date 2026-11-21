@@ -52,10 +52,12 @@ The waypoints.json file contains a list of waypoints with fields 'number','latit
 The CoperniSail script file is the entry point of the app called by Streamlit when a user connect. 
 The initialisation consists in these steps:
 - Generate default boat.
+- Load the waypoints.
+- Make an empty AIS data.
 - Draw the interface.
+
 It loops every 60s. In each loop, it loops through all boats in the database, starting by the boat which has the boat key indicated in the boat key field. It follows with the boat that has the oldest update time and repeat until every update time is more recent than 5min. The loop content is described hereunder:
 
-- Load the waypoints.
 - If the boat do not exist and the key is valid as tested by function ValidKey, create a new boat with function MakeBoat.
 - Update in database last_update_time for the boat to prevent update by another user
 - If meteo is older than 10min, update meteo data with function GetWind and function GetCurrent. Keep values to update all boat data in database at once.

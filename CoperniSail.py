@@ -1494,7 +1494,7 @@ def MainLoop(BoatData,waypoints):
         if (waypoint>0) and (waypoint>int(BoatData["last_waypoint"])):
             BoatData["last_waypoint"]=waypoint
             print(f"Waypoint {waypoint} reached", flush=True) 
-            BoatData["information"]=f"Race to waypoint {waypoint+1} !"
+            #BoatData["information"]=f"Race to waypoint {waypoint+1} !"
         if waypoint==int(waypoints["number"][-1]):
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])

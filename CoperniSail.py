@@ -1490,7 +1490,7 @@ def MainLoop(BoatData,waypoints):
             travel_time = (newTime - start_time).total_seconds()
             # Update best time if this is a new record
             best_time = BoatData.get("best_time")
-            if best_time is 0 or travel_time < best_time:
+            if (best_time == 0) or (travel_time < best_time):
                 BoatData["best_time"] = travel_time
             hours = int(travel_time // 3600)
             minutes = int((travel_time % 3600) // 60)
@@ -1501,6 +1501,6 @@ def MainLoop(BoatData,waypoints):
             BoatData["last_waypoint"]=0    
     DrawInterface(BoatData, AisData, waypoints)
     st.session_state.firstLoop = False
-    return firstLoop
+    return
 
 firstLoop=MainLoop(BoatData, waypoints)

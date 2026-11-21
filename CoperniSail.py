@@ -1439,12 +1439,12 @@ def GetUserInput(boat_data):
 waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
 AisData={}
-DrawInterface(BoatData, AisData, waypoints)
 print("DEBUG: Init done", flush=True)
 
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
+    DrawInterface(BoatData, AisData, waypoints)
     BoatData=GetUserInput(BoatData)
     key=BoatData["boat_key"]
     if ValidKey(key):
@@ -1472,6 +1472,5 @@ def MainLoop(BoatData,waypoints):
         BoatData, AisData=SimulateMovement(newTime, BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-    DrawInterface(BoatData, AisData, waypoints)    
 
 MainLoop(BoatData,waypoints)

@@ -1464,6 +1464,7 @@ def MainLoop(BoatData,waypoints):
         current_speed,current_direction=GetCurrent(BoatData["latitude"],BoatData["longitude"])
         BoatData["current_speed"]=current_speed
         BoatData["current_direction"]=current_direction
+        BoatData["meteo_update_time"]=datetime.now(timezone.utc).isoformat()
         print("Meteo updated", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     while datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("last_update_time")) >= timedelta(seconds=10):

@@ -1444,7 +1444,7 @@ if "firstLoop" not in st.session_state:
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
-    print(f"DEBUG: firstLoop={firstLoop}", flush=True)
+    print(f"DEBUG: firstLoop={st.session_state.firstLoop}", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if not st.session_state.firstLoop:
         BoatData = GetUserInput(BoatData)

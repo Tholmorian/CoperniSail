@@ -1447,14 +1447,16 @@ def MainLoop(BoatData,waypoints):
     print(f'DEBUG: BoatData["tack"] {BoatData["tack"]}', flush=True)
     if not st.session_state.firstLoop:
         BoatData = GetUserInput(BoatData)
+    print(f'DEBUG: BoatData["tack"] {BoatData["tack"]}', flush=True)
     key=BoatData["boat_key"]
     if ValidKey(key):
         BoatData=GetMyBoat(key)
         if BoatData is None:
             BoatData = MakeBoat(key,waypoints)
     else:
-         BoatData["boat_key"]="0"
-         BoatData["information"]="Boat key not valid"
+        BoatData["boat_key"]="0"
+        BoatData["information"]="Boat key not valid"
+    print(f'DEBUG: BoatData["tack"] {BoatData["tack"]}', flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("meteo_update_time")) < timedelta(minutes=10):
         print("", flush=True)

@@ -1289,7 +1289,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # BOAT KEY
         # -----------------------------------------------------
 
-        with interface.container(key="boat_key_panel"):
+        with st.container(key="boat_key_panel"):
 
             st.text_input(
                 "Boat Key",
@@ -1303,7 +1303,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # BOAT NAME
         # -----------------------------------------------------
 
-        with interface.container(key="boat_name_panel"):
+        with st.container(key="boat_name_panel"):
 
             st.text_input(
                 "Boat Name",
@@ -1315,7 +1315,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # SKIPPER NAME
         # -----------------------------------------------------
 
-        with interface.container(key="skipper_panel"):
+        with st.container(key="skipper_panel"):
 
             st.text_input(
                 "Skipper name",
@@ -1331,7 +1331,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col1:
 
-            with interface.container(key="heading_panel"):
+            with st.container(key="heading_panel"):
 
                 st.number_input(
                     "Target heading (°)",
@@ -1346,7 +1346,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col2:
         
-            with interface.container(key="tack_panel"):
+            with st.container(key="tack_panel"):
         
                 tack = boat_data.get("tack", "stopped").lower()
         
@@ -1376,7 +1376,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col1:
 
-            with interface.container(key="true_heading_panel"):
+            with st.container(key="true_heading_panel"):
 
                 st.metric(
                     "True heading",
@@ -1385,7 +1385,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
 
         with nav_col2:
 
-            with interface.container(key="speed_panel"):
+            with st.container(key="speed_panel"):
 
                 st.metric(
                     "True speed",
@@ -1401,7 +1401,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
             f"?{latitude},{longitude},11"
         )
 
-        with interface.container(key="windy_panel"):
+        with st.container(key="windy_panel"):
 
             st.link_button(
                 "Forecast",
@@ -1413,7 +1413,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # INFORMATION
         # -----------------------------------------------------
 
-        with interface.container(key="information_panel"):
+        with st.container(key="information_panel"):
 
             st.markdown("**Information**")
 

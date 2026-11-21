@@ -1500,7 +1500,7 @@ def MainLoop(BoatData,waypoints):
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0    
     DrawInterface(BoatData, AisData, waypoints)
-    firstLoop=False
+    st.session_state.firstLoop = False
     return firstLoop
 
 firstLoop=MainLoop(BoatData, waypoints)

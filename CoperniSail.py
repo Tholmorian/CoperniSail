@@ -1441,7 +1441,7 @@ AisData={}
 print("DEBUG: Init done", flush=True)
 firstLoop=True
 @st.fragment(run_every="60s")
-def MainLoop(BoatData,waypoints):
+def MainLoop(BoatData,waypoints,firstLoop):
     print("DEBUG: MainLoop start", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if firstLoop==False:
@@ -1500,7 +1500,8 @@ def MainLoop(BoatData,waypoints):
     interface.empty()
     DrawInterface(BoatData, AisData, waypoints,interface)
     firstLoop=False
+    return firstLoop
 
 app_placeholder = st.empty()
 with app_placeholder.container():
-    MainLoop(BoatData, waypoints)
+    firstLoop=MainLoop(BoatData, waypoints,firstLoop)

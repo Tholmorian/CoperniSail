@@ -1500,7 +1500,7 @@ def MainLoop(BoatData,waypoints):
             start_time = datetime.fromisoformat(BoatData["start_time"])
             travel_time = (newTime - start_time).total_seconds()
             # Update best time if this is a new record
-            if (best_time == 0) or (travel_time < BoatData.get("best_time_to_arrival")):
+            if (BoatData.get("best_time_to_arrival") == 0) or (travel_time < BoatData.get("best_time_to_arrival")):
                 BoatData["best_time_to_arrival"] = travel_time
             hours = int(travel_time // 3600)
             minutes = int((travel_time % 3600) // 60)

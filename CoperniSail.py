@@ -1457,7 +1457,7 @@ def MainLoop(BoatData,waypoints):
          BoatData["information"]="Boat key not valid"
 
     if datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("meteo_update_time")) < timedelta(minutes=10):
-        print("Meteo recent", flush=True)
+        print("", flush=True)
     else:
         wind_speed,wind_direction=GetWind(BoatData["latitude"],BoatData["longitude"])
         BoatData["wind_speed"]=wind_speed
@@ -1468,9 +1468,34 @@ def MainLoop(BoatData,waypoints):
         BoatData["meteo_update_time"]=datetime.now(timezone.utc).isoformat()
         print("Meteo updated", flush=True)  
     while datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("last_update_time")) >= timedelta(seconds=10):
-        newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
-        BoatData, AisData=SimulateMovement(newTime, BoatData, AisData)
+        newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10))
+        BoatData, AisData=SimulateMovement(newTime.isoformat(), BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
+        if length(colision)>0:
+            BoatData["information"]="Collision with "+AisData["boat_name"][colision]
+            BoatData["latitude"]=waypoints[0]["latitude"]
+            BoatData["longitude"]=waypoints[0]["longitude"]
+            BoatData["tack"]="stopped"
+            BoatData["last_waypoint"]=0
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
+        if waypoint==1:
+            BoatData["start_time"]=datetime.now(timezone.utc).isoformat()
+        if (waypoint>0) and (waypoint>BoatData["last_waypoint"]):
+            BoatData["last_waypoint"]=waypoint
+        if waypoint==waypoints[length(waypoints)]["number"]:
+            # Calculate elapsed travel time
+            start_time = datetime.fromisoformat(BoatData["start_time"])
+            travel_time = (newTime - start_time).total_seconds()
+            # Update best time if this is a new record
+            best_time = BoatData.get("best_time")
+            if best_time is 0 or travel_time < best_time:
+                BoatData["best_time"] = travel_time
+            hours = int(travel_time // 3600)
+            minutes = int((travel_time % 3600) // 60)
+            BoatData["information"]=f"You finished in: {hours}h {minutes}min"
+            BoatData["latitude"]=waypoints[0]["latitude"]
+            BoatData["longitude"]=waypoints[0]["longitude"]
+            BoatData["tack"]="stopped"
+            BoatData["last_waypoint"]=0            
 
 MainLoop(BoatData,waypoints)

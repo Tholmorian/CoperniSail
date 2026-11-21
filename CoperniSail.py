@@ -1252,7 +1252,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
                 tooltip = (
                     f"Name: {html.escape(str(ais_name))}<br>"
                     f"Length: {ais_length:.1f} m<br>"
-                    f"Speed: {ais_speed * 1.943844:.1f} knots"
+                    f"Speed: {ais_speed / 1.943844:.1f} knots"
                 )
 
                 folium.Polygon(
@@ -1441,10 +1441,10 @@ AisData={}
 print("DEBUG: Init done", flush=True)
 if "firstLoop" not in st.session_state:
     st.session_state.firstLoop = True
+
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
-    print(f"DEBUG: firstLoop={st.session_state.firstLoop}", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if not st.session_state.firstLoop:
         BoatData = GetUserInput(BoatData)
@@ -1473,6 +1473,7 @@ def MainLoop(BoatData,waypoints):
         BoatData, AisData=SimulateMovement(newTime.isoformat(), BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
         if len(colision)>0:
+            print("Collision", flush=True)  
             BoatData["information"]="Collision with "+AisData["boat_name"][colision]
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
@@ -1498,7 +1499,10 @@ def MainLoop(BoatData,waypoints):
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
-            BoatData["last_waypoint"]=0    
+            BoatData["last_waypoint"]=0   
+    if ValidKey(key):
+        SaveBoat(BoatData)
+        
     DrawInterface(BoatData, AisData, waypoints)
     st.session_state.firstLoop = False
     return

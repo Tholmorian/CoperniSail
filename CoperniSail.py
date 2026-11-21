@@ -1469,7 +1469,7 @@ def MainLoop(BoatData,waypoints):
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     while datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("last_update_time")) >= timedelta(seconds=10):
         newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
-        BoatData, AisData=SimulateMovement(datetime.now(timezone.utc).isoformat(), BoatData, AisData)
+        BoatData, AisData=SimulateMovement(newTime, BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
     DrawInterface(BoatData, AisData, waypoints)    

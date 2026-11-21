@@ -1432,8 +1432,6 @@ def GetUserInput(boat_data):
     boat_data["heading_target"]=float(st.session_state.get("heading_target", 0))
     boat_data["tack"]=st.session_state.get("tack", "stopped")
     return boat_data
-    
-
 
 waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
@@ -1446,7 +1444,7 @@ if "firstLoop" not in st.session_state:
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     print(f"DEBUG: st.session_state.firstLoop {st.session_state.firstLoop}", flush=True)
-    print(f"DEBUG: BoatData["tack"] {BoatData["tack"]}", flush=True)
+    print(f"DEBUG: BoatData[""tack""] {BoatData[""tack""]}", flush=True)
     if not st.session_state.firstLoop:
         BoatData = GetUserInput(BoatData)
     key=BoatData["boat_key"]

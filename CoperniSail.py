@@ -867,12 +867,10 @@ def CheckWaypoint(latitude, longitude, waypoints):
     return 0
 
 
-
-def DrawInterface(boat_data, AIS_data,waypoints):
+def DrawInterface(boat_data, AIS_data,waypoints,interface):
     """
     Draw the CoperniSail user interface.
     """
-    interface = st.empty()
     with interface.container():
         # ---------------------------------------------------------
         # 1. BOAT DATA
@@ -1442,14 +1440,14 @@ def GetUserInput(boat_data):
 waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
 AisData={}
-
+interface = st.empty()
+DrawInterface(BoatData, AisData, waypoints,interface)
 print("DEBUG: Init done", flush=True)
 
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
-    DrawInterface(BoatData, AisData, waypoints)
     BoatData=GetUserInput(BoatData)
     key=BoatData["boat_key"]
     if ValidKey(key):
@@ -1501,8 +1499,9 @@ def MainLoop(BoatData,waypoints):
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
-            BoatData["last_waypoint"]=0            
-    #DrawInterface(BoatData, AisData, waypoints)
+            BoatData["last_waypoint"]=0    
+    interface.empty()
+    DrawInterface(BoatData, AisData, waypoints,interface)
 
 app_placeholder = st.empty()
 with app_placeholder.container():

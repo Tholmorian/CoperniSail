@@ -1339,6 +1339,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
                         boat_data.get("heading_target", 0)
                     ),
                     step=1.0,
+                    format="%d",
                     key="heading_target"
                 )
 

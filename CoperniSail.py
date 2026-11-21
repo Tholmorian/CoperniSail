@@ -1497,8 +1497,7 @@ def MainLoop(BoatData,waypoints,firstLoop):
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0    
-    interface.empty()
-    DrawInterface(BoatData, AisData, waypoints,interface)
+    DrawInterface(BoatData, AisData, waypoints)
     firstLoop=False
     return firstLoop
 

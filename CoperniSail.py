@@ -1471,7 +1471,7 @@ def MainLoop(BoatData,waypoints):
         newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10))
         BoatData, AisData=SimulateMovement(newTime.isoformat(), BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
-        if length(colision)>0:
+        if len(colision)>0:
             BoatData["information"]="Collision with "+AisData["boat_name"][colision]
             BoatData["latitude"]=waypoints[0]["latitude"]
             BoatData["longitude"]=waypoints[0]["longitude"]
@@ -1482,7 +1482,7 @@ def MainLoop(BoatData,waypoints):
             BoatData["start_time"]=datetime.now(timezone.utc).isoformat()
         if (waypoint>0) and (waypoint>BoatData["last_waypoint"]):
             BoatData["last_waypoint"]=waypoint
-        if waypoint==waypoints[length(waypoints)]["number"]:
+        if waypoint==waypoints[len(waypoints)]["number"]:
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])
             travel_time = (newTime - start_time).total_seconds()

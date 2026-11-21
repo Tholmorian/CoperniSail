@@ -1502,5 +1502,4 @@ def MainLoop(BoatData,waypoints,firstLoop):
     firstLoop=False
     return firstLoop
 
-with app_placeholder.container():
-    firstLoop=MainLoop(BoatData, waypoints,firstLoop)
+firstLoop=MainLoop(BoatData, waypoints,firstLoop)

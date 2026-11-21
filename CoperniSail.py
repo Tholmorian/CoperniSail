@@ -1482,7 +1482,8 @@ def MainLoop(BoatData,waypoints):
             BoatData["start_time"]=datetime.now(timezone.utc).isoformat()
         if (waypoint>0) and (waypoint>int(BoatData["last_waypoint"])):
             BoatData["last_waypoint"]=waypoint
-        if waypoint==int(waypoints[len(waypoints)]["number"]):
+            print(f"Waypoint {waypoint} reached", flush=True)  
+        if waypoint==int(waypoints[-1]["number"]):
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])
             travel_time = (newTime - start_time).total_seconds()

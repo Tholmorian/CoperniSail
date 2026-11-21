@@ -1174,17 +1174,6 @@ def DrawInterface(boat_data, AIS_data,waypoints):
                     )
                 ).add_to(m)
 
-                # Mark waypoint centre
-                folium.CircleMarker(
-                    location=[wp_lat, wp_lon],
-                    radius=5,
-                    color="lime",
-                    fill=True,
-                    fill_color="lime",
-                    fill_opacity=1,
-                    tooltip=f"Waypoint {wp_number}"
-                ).add_to(m)
-
         # -----------------------------------------------------
         # USER BOAT
         # -----------------------------------------------------
@@ -1448,7 +1437,7 @@ def GetUserInput(boat_data):
     
 
 waypoints=GetWaypoint()
-BoatData = MakeBoat()
+BoatData = MakeBoat("0",waypoints)
 newTime= (datetime.fromisoformat(BoatData["last_update_time"])+timedelta(seconds=10)).isoformat()
 AisData={}
 DrawInterface(BoatData, AisData, waypoints)

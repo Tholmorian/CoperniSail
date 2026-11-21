@@ -1348,7 +1348,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         
             with st.container(key="tack_panel"):
         
-                tack = boat_data.get("tack", "port").lower()
+                tack = boat_data.get("tack", "stopped").lower()
         
                 if tack not in ["port", "starboard", "stopped"]:
                     tack = "port"

@@ -1451,7 +1451,7 @@ def MainLoop(BoatData,waypoints):
             st.session_state.boat_name=BoatData["boat_name"]
             st.session_state.skipper_name=BoatData["skipper_name"]
             st.session_state.heading_target=float(BoatData["heading_target"])
-            st.session_state.get.tack=BoatData["tack"]            
+            st.session_state.tack=BoatData["tack"]            
             st.session_state.oldKey=key
             print(f'DEBUG: BoatData loaded {BoatData}', flush=True)
         if BoatData is None:

@@ -1442,8 +1442,6 @@ if "firstLoop" not in st.session_state:
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
-    print(f"DEBUG: st.session_state.firstLoop {st.session_state.firstLoop}", flush=True)
-    print(f'DEBUG: BoatData["tack"] {BoatData["tack"]}', flush=True)
     
     key=BoatData["boat_key"]
     if ValidKey(key):
@@ -1508,8 +1506,8 @@ def MainLoop(BoatData,waypoints):
             BoatData["last_waypoint"]=0   
     if ValidKey(key):
         SaveBoat(BoatData)
-        print("DEBUG: MainLoop start", flush=True)
-
+        print("DEBUG: BoatData saved", flush=True)
+        
     DrawInterface(BoatData, AisData, waypoints)
     st.session_state.firstLoop = False
     return

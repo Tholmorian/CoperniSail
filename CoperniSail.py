@@ -1438,6 +1438,8 @@ AisData={}
 print("DEBUG: Init done", flush=True)
 if "firstLoop" not in st.session_state:
     st.session_state.firstLoop = True
+if "oldKey" not in st.session_state:
+    st.session_state.oldKey = "0"
 
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
@@ -1445,8 +1447,14 @@ def MainLoop(BoatData,waypoints):
     
     key=BoatData["boat_key"]
     if ValidKey(key):
-        BoatData=GetMyBoat(key)
-        print(f'DEBUG: BoatData loaded {BoatData}', flush=True)
+        if key!=st.session_state.oldKey:
+            BoatData=GetMyBoat(key)
+            st.session_state.boat_name=boat_data["boat_name"]
+            st.session_state.skipper_name=boat_data["skipper_name"]
+            st.session_state.heading_target=float(boat_data["heading_target"])
+            st.session_state.get.tack=boat_data["tack"]            
+            st.session_state.oldKey=key
+            print(f'DEBUG: BoatData loaded {BoatData}', flush=True)
         if BoatData is None:
             BoatData = MakeBoat(key,waypoints)
     else:
@@ -1507,7 +1515,7 @@ def MainLoop(BoatData,waypoints):
     if ValidKey(key):
         SaveBoat(BoatData)
         print("DEBUG: BoatData saved", flush=True)
-        
+
     DrawInterface(BoatData, AisData, waypoints)
     st.session_state.firstLoop = False
     return

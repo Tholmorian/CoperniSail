@@ -1444,15 +1444,14 @@ if "oldKey" not in st.session_state:
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
-    
     key=BoatData["boat_key"]
     if ValidKey(key):
         if key!=st.session_state.oldKey:
             BoatData=GetMyBoat(key)
-            st.session_state.boat_name=boat_data["boat_name"]
-            st.session_state.skipper_name=boat_data["skipper_name"]
-            st.session_state.heading_target=float(boat_data["heading_target"])
-            st.session_state.get.tack=boat_data["tack"]            
+            st.session_state.boat_name=BoatData["boat_name"]
+            st.session_state.skipper_name=BoatData["skipper_name"]
+            st.session_state.heading_target=float(BoatData["heading_target"])
+            st.session_state.get.tack=BoatData["tack"]            
             st.session_state.oldKey=key
             print(f'DEBUG: BoatData loaded {BoatData}', flush=True)
         if BoatData is None:

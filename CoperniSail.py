@@ -291,13 +291,13 @@ def GetWind(latitude,longitude):
         f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
         "&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms"
     )
-    resp = requests.get(weather_url, timeout=5)
+    resp = requests.get(weather_url, timeout=10)
     resp.raise_for_status()
     current_weather = resp.json().get("current", {})
     w_speed_ms = current_weather.get("wind_speed_10m", 0.0)
     wind_dir = current_weather.get("wind_direction_10m", 180.0)
-  except Exception:
-    st.warning("Could not load wind")
+  except Exception as e:
+    st.warning(f"Could not load wind: {e}")
   return w_speed_ms,  wind_dir
 
 def GetAisData(latitude,longitude):

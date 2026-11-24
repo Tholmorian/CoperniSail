@@ -1433,6 +1433,15 @@ def GetUserInput(boat_data):
     return boat_data
 
 waypoints=GetWaypoint()
+if "boat_key" in st.session_state:
+    BoatData=GetMyBoat(key)
+    st.session_state.boat_name=BoatData["boat_name"]
+    st.session_state.skipper_name=BoatData["skipper_name"]
+    st.session_state.heading_target=float(BoatData["heading_target"])
+    st.session_state.tack=BoatData["tack"]            
+    st.session_state.information=BoatData["information"]   
+    st.session_state.oldKey=key
+    print(f'DEBUG: BoatData loaded {key}', flush=True)
 BoatData = MakeBoat("0",waypoints)
 print("DEBUG: New boat 0 created", flush=True)
 AisData={}

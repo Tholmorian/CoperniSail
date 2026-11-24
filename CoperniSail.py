@@ -1496,8 +1496,7 @@ def MainLoop(BoatData,waypoints):
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
-            BoatData["last_waypoint"]=0
-        if wa            
+            BoatData["last_waypoint"]=0        
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
         if (waypoint==0) and (int(BoatData["last_waypoint"])==0):
             BoatData["last_waypoint"]=1

@@ -1449,7 +1449,7 @@ def MainLoop(BoatData,waypoints):
     if ValidKey(key):
         print(f'DEBUG: BoatData["boat_key"] {key} validated', flush=True)
         if key!=st.session_state.oldKey:
-            print('DEBUG: key!=st.session_state.oldKey, flush=True)
+            print('DEBUG: key!=st.session_state.oldKey', flush=True)
             BoatData=GetMyBoat(key)
             st.session_state.boat_name=BoatData["boat_name"]
             st.session_state.skipper_name=BoatData["skipper_name"]

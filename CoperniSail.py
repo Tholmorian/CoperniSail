@@ -1434,7 +1434,7 @@ def GetUserInput(boat_data):
 
 waypoints=GetWaypoint()
 if "boat_key" in st.session_state:
-    BoatData=GetMyBoat(key)
+    BoatData=GetMyBoat(st.session_state.boat_key)
     st.session_state.boat_name=BoatData["boat_name"]
     st.session_state.skipper_name=BoatData["skipper_name"]
     st.session_state.heading_target=float(BoatData["heading_target"])

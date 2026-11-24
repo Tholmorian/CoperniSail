@@ -1444,7 +1444,7 @@ if "boat_key" in st.session_state:
     print(f'DEBUG: BoatData loaded {st.session_state.boat_key}', flush=True)
 else:
     BoatData = MakeBoat("0",waypoints)
-print("DEBUG: New boat 0 created", flush=True)
+    print("DEBUG: New boat 0 created", flush=True)
 AisData={}
 print("DEBUG: Init done", flush=True)
 if "firstLoop" not in st.session_state:

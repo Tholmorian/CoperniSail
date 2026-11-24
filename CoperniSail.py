@@ -1440,8 +1440,8 @@ if "boat_key" in st.session_state:
     st.session_state.heading_target=float(BoatData["heading_target"])
     st.session_state.tack=BoatData["tack"]            
     st.session_state.information=BoatData["information"]   
-    st.session_state.oldKey=key
-    print(f'DEBUG: BoatData loaded {key}', flush=True)
+    st.session_state.oldKey=st.session_state.boat_key
+    print(f'DEBUG: BoatData loaded {st.session_state.boat_key}', flush=True)
 BoatData = MakeBoat("0",waypoints)
 print("DEBUG: New boat 0 created", flush=True)
 AisData={}

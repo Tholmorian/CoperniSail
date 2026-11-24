@@ -1442,7 +1442,8 @@ if "boat_key" in st.session_state:
     st.session_state.information=BoatData["information"]   
     st.session_state.oldKey=st.session_state.boat_key
     print(f'DEBUG: BoatData loaded {st.session_state.boat_key}', flush=True)
-BoatData = MakeBoat("0",waypoints)
+else:
+    BoatData = MakeBoat("0",waypoints)
 print("DEBUG: New boat 0 created", flush=True)
 AisData={}
 print("DEBUG: Init done", flush=True)

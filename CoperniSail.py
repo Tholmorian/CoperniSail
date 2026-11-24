@@ -1434,6 +1434,7 @@ def GetUserInput(boat_data):
 
 waypoints=GetWaypoint()
 BoatData = MakeBoat("0",waypoints)
+print("DEBUG: New boat 0 created", flush=True)
 AisData={}
 print("DEBUG: Init done", flush=True)
 if "firstLoop" not in st.session_state:
@@ -1446,7 +1447,9 @@ def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
     key=BoatData["boat_key"]
     if ValidKey(key):
+        print(f'DEBUG: BoatData["boat_key"] {key} validated', flush=True)
         if key!=st.session_state.oldKey:
+            print('DEBUG: key!=st.session_state.oldKey, flush=True)
             BoatData=GetMyBoat(key)
             st.session_state.boat_name=BoatData["boat_name"]
             st.session_state.skipper_name=BoatData["skipper_name"]
@@ -1454,13 +1457,16 @@ def MainLoop(BoatData,waypoints):
             st.session_state.tack=BoatData["tack"]            
             st.session_state.information=BoatData["information"]   
             st.session_state.oldKey=key
-            print(f'DEBUG: BoatData loaded {BoatData}', flush=True)
+            print(f'DEBUG: BoatData loaded {key}', flush=True)
         if BoatData is None:
             BoatData = MakeBoat(key,waypoints)
+            print(f"DEBUG: New boat {key} created", flush=True)
     else:
         BoatData["information"]="Boat key not valid"
+        print(f'DEBUG: BoatData["boat_key"] {key} NOT valid', flush=True)
     if not st.session_state.firstLoop:
         BoatData = GetUserInput(BoatData)
+        print('DEBUG: GetUserInput(BoatData) done', flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("meteo_update_time")) < timedelta(minutes=10):
         print("", flush=True)
@@ -1478,14 +1484,14 @@ def MainLoop(BoatData,waypoints):
         BoatData, AisData=SimulateMovement(newTime.isoformat(), BoatData, AisData)
         colision=CheckColision(BoatData, AisData)
         if len(colision)>0:
-            print("Collision", flush=True)  
+            print("DEBUG: Collision detected", flush=True)  
             BoatData["information"]="Collision with "+AisData["boat_name"][colision]
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
             BoatData["last_waypoint"]=0
         if CheckAground(BoatData["latitude"],BoatData["longitude"]):
-            print("Aground", flush=True)  
+            print("DEBUG: Aground detected", flush=True)  
             BoatData["information"]="The boat ran aground"
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
@@ -1514,7 +1520,7 @@ def MainLoop(BoatData,waypoints):
             BoatData["last_waypoint"]=0   
     if ValidKey(key):
         SaveBoat(BoatData)
-        print("DEBUG: BoatData saved", flush=True)
+        print(f"DEBUG: BoatData {key} saved", flush=True)
 
     DrawInterface(BoatData, AisData, waypoints)
     st.session_state.firstLoop = False

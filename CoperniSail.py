@@ -914,7 +914,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         .st-key-true_heading_panel,
         .st-key-speed_panel,
         .st-key-windy_panel,
-        .st-key-information_panel {
+        .st-key-information {
             background-color: #5082bb;
             border: 2px solid #315d91;
             border-radius: 3px;
@@ -960,11 +960,11 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         }
 
         /* Information */
-        .st-key-information_panel {
+        .st-key-information {
             min-height: 95px;
         }
 
-        .st-key-information_panel p {
+        .st-key-information p {
             color: white !important;
             font-size: 16px;
         }
@@ -1410,7 +1410,7 @@ def DrawInterface(boat_data, AIS_data,waypoints):
         # INFORMATION
         # -----------------------------------------------------
 
-        with st.container(key="information_panel"):
+        with st.container(key="information"):
 
             st.markdown("**Information**")
 
@@ -1496,14 +1496,17 @@ def MainLoop(BoatData,waypoints):
             BoatData["latitude"]=waypoints["latitude"][0]
             BoatData["longitude"]=waypoints["longitude"][0]
             BoatData["tack"]="stopped"
-            BoatData["last_waypoint"]=0            
+            BoatData["last_waypoint"]=0
+        if wa            
         waypoint=CheckWaypoint(BoatData["latitude"],BoatData["longitude"],waypoints)
-        if waypoint==1:
+        if (waypoint==0) and (int(BoatData["last_waypoint"])==0):
+            BoatData["last_waypoint"]=1
             BoatData["start_time"]=datetime.now(timezone.utc).isoformat()
-        if (waypoint>0) and (waypoint>int(BoatData["last_waypoint"])):
+            BoatData["information"]=f"Race to waypoint 2 !"
+        if (waypoint>1) and (waypoint>int(BoatData["last_waypoint"])):
             BoatData["last_waypoint"]=waypoint
             print(f"Waypoint {waypoint} reached", flush=True) 
-            #BoatData["information"]=f"Race to waypoint {waypoint+1} !"
+            BoatData["information"]=f"Race to waypoint {waypoint+1} !"
         if waypoint==int(waypoints["number"][-1]):
             # Calculate elapsed travel time
             start_time = datetime.fromisoformat(BoatData["start_time"])

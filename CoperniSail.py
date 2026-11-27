@@ -1426,8 +1426,8 @@ def GetUserInput(boat_data):
     # RETURN USER INPUTS
     # ---------------------------------------------------------
     boat_data["boat_key"]= st.session_state.get("boat_key", "ABC123")
-    boat_data["boat_name"]= st.session_state.get("boat_name", "x")
-    boat_data["skipper_name"]=st.session_state.get("skipper_name", "x")
+    boat_data["boat_name"]= st.session_state.get("boat_name", "Z")
+    boat_data["skipper_name"]=st.session_state.get("skipper_name", "Z")
     boat_data["heading_target"]=float(st.session_state.get("heading_target", 0))
     boat_data["tack"]=st.session_state.get("tack", "stopped")
     return boat_data
@@ -1455,6 +1455,9 @@ if "oldKey" not in st.session_state:
 @st.fragment(run_every="60s")
 def MainLoop(BoatData,waypoints):
     print("DEBUG: MainLoop start", flush=True)
+    if not st.session_state.firstLoop:
+        BoatData = GetUserInput(BoatData)
+        print('DEBUG: GetUserInput(BoatData) done', flush=True)
     key=BoatData["boat_key"]
     if ValidKey(key):
         print(f'DEBUG: BoatData["boat_key"] {key} validated', flush=True)
@@ -1474,9 +1477,6 @@ def MainLoop(BoatData,waypoints):
     else:
         BoatData["information"]="Boat key not valid"
         print(f'DEBUG: BoatData["boat_key"] {key} NOT valid', flush=True)
-    if not st.session_state.firstLoop:
-        BoatData = GetUserInput(BoatData)
-        print('DEBUG: GetUserInput(BoatData) done', flush=True)
     AisData= GetAisData(BoatData["latitude"],BoatData["longitude"])
     if datetime.now(timezone.utc) - datetime.fromisoformat(BoatData.get("meteo_update_time")) < timedelta(minutes=10):
         print("", flush=True)
